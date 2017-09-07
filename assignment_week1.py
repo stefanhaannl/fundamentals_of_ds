@@ -8,6 +8,7 @@ import matplotlib.cm as cm
 from matplotlib.colors import rgb2hex
 from descartes import PolygonPatch
 from shapely.geometry import Polygon, MultiPolygon
+
 #S_DIR is the directory in which your converted name2.shp file is located 
 def projection(coordinates, extra_latitude, extra_longitude, shape):
     
@@ -29,7 +30,7 @@ def projection(coordinates, extra_latitude, extra_longitude, shape):
             c[0] = c[0] + extra_latitude
             coordinates[i] = c
                     
-# Scaling of states               
+# Scaling of states              
 def scale(coordinates, coordinates2, scalefactor, shape):
     longcoords = []
     latcoords =[]
@@ -61,11 +62,9 @@ def scale(coordinates, coordinates2, scalefactor, shape):
         for j in range(j,len(coordinates2)):
             a = coordinates2[j]
             k=0
-            #print len(a)
             for k in range(k,len(a)):
                 b = a[k]
                 i=0
-                print len(b)
                 for i in range(i, len(b)):
                     c = b[i]
                     longcoords.append(c[1])
@@ -85,12 +84,9 @@ def scale(coordinates, coordinates2, scalefactor, shape):
             coordinates[i] = c
                
     return coordinates
+
 def convert_to_color(average_age, min_age, max_age):
-    bottom = min_age
-    upper = max_age
-    
-    alpha = float(average_age-min_age)/float((max_age-min_age))
-    
+    alpha = float(average_age-min_age)/float((max_age-min_age))    
     return alpha
 
 def move_state(state_name, extra_lat, extra_long):
@@ -127,24 +123,20 @@ def scale_state(state_name):
                 projected_coordinates = scale(coordinates, coordinates2, scalefactor, shape="Multipolygonon")
                 poly = Polygon(projected_coordinates)
                 ax.add_patch(PolygonPatch(poly, fc=RED,  alpha=gradient,  zorder=2))
+                
+
 if __name__ == "__main__": 
-    
-    
-    population_data = pd.read_csv('C:\Users\daniel\Documents\Jupyter notebooks\Fundamentals of Data Science\sc-est2016-agesex-civ.csv')
+    population_data = pd.read_csv('pop_data/sc-est2016-agesex-civ.csv')
     population_data_all = population_data[population_data['SEX']==0]
     population_data_all = population_data_all[population_data_all['AGE']!=999]
     # Calculate average age of each state for the year 2016
     population_data_all['WEIGHT'] = population_data_all['AGE']*population_data_all['POPEST2016_CIV']
     avgAge = population_data_all.groupby('NAME')['WEIGHT'].sum() / population_data_all.groupby('NAME')['POPEST2016_CIV'].sum()
     
-    
     max_AvgAge = max(avgAge)
     min_AvgAge  = min(avgAge)
-    
-    test = 37.59
-    alpha = convert_to_color(test, min_AvgAge, max_AvgAge)
-        
-    S_DIR = 'states/' 
+
+    S_DIR = 'shapefiles/' 
     BLUE = '#5599ff'
     RED = '#F03911'
     BLACK = '#0B0B0B'
@@ -154,7 +146,7 @@ if __name__ == "__main__":
     state = 'Hawaii'
     scalefactor = 1000
 
-    with open(os.path.join(S_DIR, 'C:\Users\daniel\Documents\Jupyter notebooks\Fundamentals of Data Science\states_21basic\states.geojson')) as rf:    
+    with open(os.path.join(S_DIR, 'states.geojson')) as rf:    
         data = json.load(rf)
 
     fig = plt.figure() 
@@ -170,7 +162,8 @@ if __name__ == "__main__":
         
         if state_name == state:
             #move_state(state, extra_lat,extra_long)
-            scale_state(state)
+            #scale_state(state)
+            pass
         else:
             if geometry['type'] == 'Polygon':
                 # polygons
