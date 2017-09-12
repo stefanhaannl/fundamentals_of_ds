@@ -2,3 +2,4 @@
 - Github werkende maken
 - Verslag schrijven (ShareLATEX)
 - Planning voor aankomende week maken
+- Lunchen
