@@ -1,4 +1,0 @@
-12 September 2017 12:00 tot 17:00
-- Github werkende maken
-- Verslag schrijven (ShareLATEX)
-- Planning voor aankomende week maken
