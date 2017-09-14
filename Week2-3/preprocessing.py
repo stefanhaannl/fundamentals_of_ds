@@ -92,6 +92,7 @@ def get_dict(tweet):
     tweet_dict = {}
     tweet_dict['longitude'] = 0.2
     tweet_dict['latitude'] = 0.3
+    tweet_dict['country'] = tweet['place']['country']
     tweet_dict['date'] =  datetime.datetime.fromtimestamp(int(tweet['timestamp_ms'])/ 1e3)
     tweet_dict['new-york time'] = 0.3
     tweet_dict['text']=text_dict['text']
@@ -103,14 +104,16 @@ def get_dict(tweet):
     tweet_dict['user'] = tweet['user']['screen_name']
     return tweet_dict
     
-def main(tweet):
+def make_dataframe(total_tweets):
     
-    length_dataset = 1
+    length_dataset = len(total_tweets)
     total_dict = {}
     i=0
     # loop through all tweets
     for i in range(i,length_dataset):
-            
+        # single tweet
+        tweet = total_tweets[i]
+        
         # get dict with tweet info
         tweet_dict = get_dict(tweet)
         
@@ -119,19 +122,29 @@ def main(tweet):
     
     # convert dict to dataframe
     dataframe = pd.DataFrame.from_dict(total_dict, orient='index')
-    pp.pprint(dataframe)
+    
+    return dataframe
     
     
 if __name__ == "__main__":
     #tweets = pd.read_json('tweets_sample.jsons' )
     
-    # read json # amor init() # deze moet nog goed door alle tweets
+    # read jsons in file
+    total_tweets = []
+    i=0
     with open('tweets_sample.jsons') as data_file:    
-        tweet = json.load(data_file)
- 
-    # main
-    main(tweet)
-
+        for line in data_file:
+            total_tweets.append(json.loads(line))
+    print "Total tweets: ", len(total_tweets)
+    
+    # make dataframe / preprocessing
+    df = make_dataframe(total_tweets)
+    pp.pprint(df)
+    
+    
+    # add column with sentiment of each tweet
+    #df_with_sentiment = add_sentiment(df)
+    
     
     # overbodige comments
     # coordinates
