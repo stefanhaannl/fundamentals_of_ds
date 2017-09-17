@@ -1,20 +1,15 @@
-# We need to import json for dumping the tweets into our file
-import json 
+import json
 import pprint as pp
 import pandas as pd
 import re
-from nltk.tokenize import RegexpTokenizer
-import HTMLParser # In Python 3.4+ import html 
-import nltk
 import datetime
 
+#Removes HTML tags in a set of data
 def RemoveHTMLTags(data):
     p = re.compile(r'<[^<]*?>')
     return p.sub('', data)
     
-
-    
-# A function that checks whether a word is included in the tweet's content
+#Checks whether a word is included in the tweet's content
 def word_in_text(word, text):
     word = word.lower()
     text = text.lower()
@@ -23,13 +18,13 @@ def word_in_text(word, text):
         return True
     return False
     
-#def get_location(text):
-    # daniel
-#def get_adjusted_datetime(text):
-    # daniel  
+def get_location(text):
+    pass
     
-      
-# A function that extracts the hyperlinks from the tweet's content.
+def get_adjusted_datetime(text):
+    pass 
+    
+#Extracts the hyperlinks from the tweet's content
 def extract_link(text):
     regex = r'https?://[^\s<>"]+|www\.[^\s<>"]+'
     match = re.search(regex, text)
@@ -39,7 +34,7 @@ def extract_link(text):
     
 def get_textdict(tweet):
     # divide words
-    textlist = str(tweet['text']).split()
+    textlist = str(tweet).split()
     
     # init    text_dict = {}
     hashtaglist=[]
@@ -79,66 +74,50 @@ def get_textdict(tweet):
                 
     return text_dict
     
-def get_dict(tweet):
+def preprocess_dataframe(df):
     # get text_dict
-    text_dict = get_textdict(tweet)
+    df['textinfo'] = df['text'].apply(get_textdict)
+    
     # alleen nog:
     """
     - lat/long
     - Adjusted time
     
     """
+    
     # fill dataframe    
-    tweet_dict = {}
-    tweet_dict['longitude'] = 0.2
-    tweet_dict['latitude'] = 0.3
-    tweet_dict['country'] = tweet['place']['country']
-    tweet_dict['date'] =  datetime.datetime.fromtimestamp(int(tweet['timestamp_ms'])/ 1e3)
-    tweet_dict['new-york time'] = 0.3
-    tweet_dict['text']=text_dict['text']
-    tweet_dict['mentions'] = text_dict['mentions']
-    tweet_dict['hashtags'] = text_dict['hashtags']
-    tweet_dict['links'] =  text_dict['links']
-    tweet_dict['retweet'] = tweet['retweeted']
-    tweet_dict['wordlist'] = text_dict['wordlist']
-    tweet_dict['user'] = tweet['user']['screen_name']
-    return tweet_dict
-    
-def make_dataframe(total_tweets):
-    
-    length_dataset = len(total_tweets)
-    total_dict = {}
-    i=0
-    # loop through all tweets
-    for i in range(i,length_dataset):
-        # single tweet
-        tweet = total_tweets[i]
-        
-        # get dict with tweet info
-        tweet_dict = get_dict(tweet)
-        
-        # add to toal_dict with index i
-        total_dict[i] = tweet_dict
-    
-    # convert dict to dataframe
-    dataframe = pd.DataFrame.from_dict(total_dict, orient='index')
-    
-    return dataframe
-    
+    df['longitude'] = 0.2
+    df['latitude'] = 0.3
+    df['date'] = (df['timestamp_ms'].apply(int)/ 1e3).apply(datetime.datetime.fromtimestamp)
+    df['new-york time'] = 0.3
+    return df
+
+def tweet_to_dict(tweet,relevant_columns):
+    """
+    Converts a json text line to a dictionary that only contains our relevant data
+    """
+    struct = json.loads(tweet)
+    d = {}
+    for column in relevant_columns:
+        c = column.split('/')
+        if len(c) == 1:
+            d[column] = struct[c[0]]
+        else:
+            d[column] = struct[c[0]][c[1]]
+    return d
+
     
 if __name__ == "__main__":
-    #tweets = pd.read_json('tweets_sample.jsons' )
+    # Read only the relevant data
+    filename = 'tweets_sample.jsons'
+    relevant_columns = ['place/country','timestamp_ms','text','retweeted','user/screen_name']
+    df = pd.DataFrame(columns=relevant_columns)
+    with open(filename) as data_file:    
+        for i, line in enumerate(data_file):
+            df.loc[i] = tweet_to_dict(line,relevant_columns)
     
-    # read jsons in file
-    total_tweets = []
-    i=0
-    with open('tweets_sample.jsons') as data_file:    
-        for line in data_file:
-            total_tweets.append(json.loads(line))
-    print "Total tweets: ", len(total_tweets)
-    
-    # make dataframe / preprocessing
-    df = make_dataframe(total_tweets)
+    # Preprocess the data into our ideal dataframe
+    df = preprocess_dataframe(df)
     pp.pprint(df)
     
     
