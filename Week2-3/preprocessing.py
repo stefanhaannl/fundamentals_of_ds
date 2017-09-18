@@ -18,8 +18,18 @@ def word_in_text(word, text):
         return True
     return False
     
-def get_location(text):
-    pass
+def get_location(boundingBox):
+    # boundingBox = tweet['place']['bounding_box']['coordinates']
+    #loc_dict = []
+    
+    i = 0
+    for i in range(i,len(boundingBox)):
+        boxCoords = boundingBox[i]
+        longitude = (boxCoords[0][0]+boxCoords[1][0]+boxCoords[2][0]+boxCoords[3][0])/4
+        latitude = (boxCoords[0][1]+boxCoords[1][1]+boxCoords[2][1]+boxCoords[3][1])/4
+    
+    loc_dict = {'longitude': longitude, 'latitude': latitude}
+    return loc_dict
     
 def get_adjusted_datetime(text):
     pass 
@@ -78,9 +88,12 @@ def preprocess_dataframe(df):
     # get text_dict
     df['textinfo'] = df['text'].apply(get_textdict)
     
+    # get tweet location
+    df['coordinates'] = df['place/bounding_box/coordinates'].apply(get_location)
+    
     # alleen nog:
+    
     """
-    - lat/long
     - Adjusted time
     
     """
@@ -102,15 +115,17 @@ def tweet_to_dict(tweet,relevant_columns):
         c = column.split('/')
         if len(c) == 1:
             d[column] = struct[c[0]]
-        else:
+        elif len(c) == 2:
             d[column] = struct[c[0]][c[1]]
+        else:
+            d[column] = struct[c[0]][c[1]][c[2]]
     return d
 
     
 if __name__ == "__main__":
     # Read only the relevant data
     filename = 'tweets_sample.jsons'
-    relevant_columns = ['place/country','timestamp_ms','text','retweeted','user/screen_name']
+    relevant_columns = ['place/bounding_box/coordinates','place/country','timestamp_ms','text','retweeted','user/screen_name']
     df = pd.DataFrame(columns=relevant_columns)
     with open(filename) as data_file:    
         for i, line in enumerate(data_file):
