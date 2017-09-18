@@ -25,26 +25,13 @@ for i in range(i, n):
     name = 'name'
     tweetjes[i] = {'longitude': rand_lon, 'latitude': rand_lat, 'name': name}
     
-#name1 = 'een'
-#name2 = 'twee'
-#name3 = 'drie'
-#tweet1 = {'coordinates': [lon1, lat1], 'name': name1}
-#tweet2 = {'coordinates': [lon2, lat2], 'name': name2}
-#tweet1 = {'longitude': lon1, 'latitude': lat1, 'name': name1}
-#tweet2 = {'longitude': lon2, 'latitude': lat2, 'name': name2}
-#tweet3 = {'longitude': lon3, 'latitude': lat3, 'name': name3}
-#tweetjes = {}
-#tweetjes[1] = tweet1
-#tweetjes[2] = tweet2
-#tweetjes[3] = tweet3
 df_tweetjes = pd.DataFrame.from_dict(tweetjes, orient='index')
 
 
 # In[2]
 
 def sum_tweets(df_tweetjes, S_DIR, Fname):
-    # Create geodataframe   
-    #fname = 'shapefiles/states.geojson' 
+    # Sum total amount of tweets per state
     us = gpd.read_file(S_DIR+Fname)
 
     tweet_point = [Point(xy) for xy in zip(df_tweetjes.longitude, df_tweetjes.latitude)]
@@ -212,6 +199,7 @@ def get_midden(coordinates2, shape):
                 minlat = min(latcoords)
                 maxlat = max(latcoords)
     return minlong, maxlong, minlat, maxlat
+
 # Retrieve coordinates of given state, transform and plot on map
 def scale_state(geometry, scalefactor, color,extra_lat, extra_long,ax):
     
@@ -328,6 +316,7 @@ if __name__ == "__main__":
     extra_long/lat = to move state (0,0) if not move
     scalefactor = to scale state (0) if not scaled
     """
+    # S_DIR is directory & Fname = shapefile name
     S_DIR = 'shapefiles/'
     Fname = 'states.geojson'
     #BLUE = '#5599ff'
@@ -335,10 +324,11 @@ if __name__ == "__main__":
     BLACK = '#0B0B0B'
     GRAY = '#DCDCDC'
 
-    extra_long = 0  # increase/decrease in longitude
-    extra_lat = 0     # increase/decrease in latitude
-    scaled_state = ['Wyoming']#,'Montana','North Dakota','South Dakota','Nebraska','Wisconsin','Iowa','Minnesota']    # State(s) that will be altered
-    scalefactor = 10  # Increase of state size in degrees
+# Longitude latitudes staan nog verkeerd in de functions, hieronder staat het goed
+    extra_lat = 10  # increase/decrease in latitude
+    extra_long = 0     # increase/decrease in longitude
+    scaled_state = ['Wyoming', 'Montana','North Dakota','South Dakota','Nebraska','Wisconsin','Iowa','Minnesota']    # State(s) that will be altered
+    scalefactor = 0  # Increase of state size in degrees
         
         
     # open coordinates/data of stats
@@ -350,4 +340,4 @@ if __name__ == "__main__":
     state_tweets_1000 = per_inhabitant(population_data_all,state_tweets)
     
     # plot states
-    plot_states(data, state_tweets_1000, scalefactor, extra_lat, extra_long, scaled_state)
+    plot_states(data, state_tweets_1000, scalefactor, extra_long, extra_lat, scaled_state)
