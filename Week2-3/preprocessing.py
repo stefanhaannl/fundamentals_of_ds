@@ -28,8 +28,9 @@ def get_location(boundingBox):
         longitude = (boxCoords[0][0]+boxCoords[1][0]+boxCoords[2][0]+boxCoords[3][0])/4
         latitude = (boxCoords[0][1]+boxCoords[1][1]+boxCoords[2][1]+boxCoords[3][1])/4
     
-    loc_dict = {'longitude': longitude, 'latitude': latitude}
-    return loc_dict
+    #loc_dict = {'longitude': longitude, 'latitude': latitude}
+    #return loc_dict
+    return longitude, latitude
     
 def get_adjusted_datetime(text):
     pass 
@@ -89,7 +90,7 @@ def preprocess_dataframe(df):
     df['textinfo'] = df['text'].apply(get_textdict)
     
     # get tweet location
-    df['coordinates'] = df['place/bounding_box/coordinates'].apply(get_location)
+    [df['longtitude'], df['latitude']] = df['place/bounding_box/coordinates'].apply(get_location)
     
     # alleen nog:
     
@@ -99,8 +100,8 @@ def preprocess_dataframe(df):
     """
     
     # fill dataframe    
-    df['longitude'] = 0.2
-    df['latitude'] = 0.3
+    #df['longitude'] = longitude
+    #df['latitude'] = latitude
     df['date'] = (df['timestamp_ms'].apply(int)/ 1e3).apply(datetime.datetime.fromtimestamp)
     df['new-york time'] = 0.3
     return df
