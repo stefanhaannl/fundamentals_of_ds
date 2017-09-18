@@ -1,6 +1,7 @@
 import json
 import pprint as pp
 import pandas as pd
+import numpy as np
 import re
 import datetime
 
@@ -89,24 +90,30 @@ def tweet_to_dict(tweet,relevant_columns):
     struct = json.loads(tweet)
     d = {}
     for column in relevant_columns:
-        c = column.split('/')
-        if len(c) == 1:
-            d[column] = struct[c[0]]
-        elif len(c) == 2:
-            d[column] = struct[c[0]][c[1]]
-        else:
-            d[column] = struct[c[0]][c[1]][c[2]]
+        try:
+            c = column.split('/')
+            if len(c) == 1:
+                d[column] = struct[c[0]]
+            elif len(c) == 2:
+                d[column] = struct[c[0]][c[1]]
+            else:
+                d[column] = struct[c[0]][c[1]][c[2]]
+        except:
+            d[column] = np.nan
+            print "Added NAN value"
     return d
 
     
 if __name__ == "__main__":
     # Read only the relevant data
-    filename = 'tweets_sample.jsons'
+    filename = 'C:\Users\ASUS\Documents\geotagged_tweets.jsons'
     relevant_columns = ['place/bounding_box/coordinates','place/country','timestamp_ms','text','retweeted','user/screen_name']
     df = pd.DataFrame(columns=relevant_columns)
     with open(filename) as data_file:    
         for i, line in enumerate(data_file):
             df.loc[i] = tweet_to_dict(line,relevant_columns)
+            if (float(i)/1000).is_integer():
+                print "Tweet NO "+str(i)+"..."
     
     # Preprocess the data into our ideal dataframe
     df = preprocess_dataframe(df)
