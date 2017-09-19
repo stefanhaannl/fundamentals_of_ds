@@ -5,30 +5,14 @@ import numpy as np
 import re
 import datetime
 
-#Removes HTML tags in a set of data
-def RemoveHTMLTags(data):
-    p = re.compile(r'<[^<]*?>')
-    return p.sub('', data)
-    
-#Checks whether a word is included in the tweet's content
-def word_in_text(word, text):
-    word = word.lower()
-    text = text.lower()
-    match = re.search(word, text)
-    if match:
-        return True
-    return False
-    
 def get_location(boundingBox):
-    i = 0
-    for i in range(i,len(boundingBox)):
-        boxCoords = boundingBox[i]
-        longitude = (boxCoords[0][0]+boxCoords[1][0]+boxCoords[2][0]+boxCoords[3][0])/4
-        latitude = (boxCoords[0][1]+boxCoords[1][1]+boxCoords[2][1]+boxCoords[3][1])/4
-    return (longitude, latitude)
-    
-def get_adjusted_datetime(text):
-    pass 
+	try:
+		for boxCoords in boundingBox:
+			longitude = (boxCoords[0][0]+boxCoords[1][0]+boxCoords[2][0]+boxCoords[3][0])/4
+			latitude = (boxCoords[0][1]+boxCoords[1][1]+boxCoords[2][1]+boxCoords[3][1])/4
+		return (longitude, latitude)
+	except:
+		return (longitude, latitude)
     
 #Extracts the hyperlinks from the tweet's content
 def extract_link(text):
@@ -40,6 +24,7 @@ def extract_link(text):
     
 def get_textdict(tweet):
     # divide words
+    tweet = tweet.encode('ascii','ignore')
     textlist = str(tweet).split()
     hashtaglist=[]
     mentionlist = []
@@ -47,7 +32,6 @@ def get_textdict(tweet):
     wordlist = []
     
     # loop through all words
-
     for word in textlist:
         # separate charachters
         charachters = list(word)
@@ -83,38 +67,43 @@ def preprocess_dataframe(df):
 
     return df
 
-def tweet_to_dict(tweet,relevant_columns):
+def add_tweet(tweet,relevant_columns_location):
     """
-    Converts a json text line to a dictionary that only contains our relevant data
+    Converts a json text line to a list entry that only contains our relevant data
     """
     struct = json.loads(tweet)
-    d = {}
-    for column in relevant_columns:
+    d = []
+    for c in relevant_columns_location:
         try:
-            c = column.split('/')
             if len(c) == 1:
-                d[column] = struct[c[0]]
+                d.append(struct[c[0]])
             elif len(c) == 2:
-                d[column] = struct[c[0]][c[1]]
+                d.append(struct[c[0]][c[1]])
             else:
-                d[column] = struct[c[0]][c[1]][c[2]]
+                d.append(struct[c[0]][c[1]][c[2]])
         except:
-            d[column] = np.nan
+            d.append(np.nan)
             print "Added NAN value"
     return d
 
-    
-if __name__ == "__main__":
-    # Read only the relevant data
-    filename = 'C:\Users\ASUS\Documents\geotagged_tweets.jsons'
+def load_dataframe(filename):
+    """
+    Load and returns the dataframe for a given filename (jsons)
+    """
     relevant_columns = ['place/bounding_box/coordinates','place/country','timestamp_ms','text','retweeted','user/screen_name']
-    df = pd.DataFrame(columns=relevant_columns)
+    relevant_columns_locations = [column.split('/') for column in relevant_columns]
+    dflist = []
     with open(filename) as data_file:    
         for i, line in enumerate(data_file):
-            df.loc[i] = tweet_to_dict(line,relevant_columns)
+            dflist.append(add_tweet(line,relevant_columns_locations))
             if (float(i)/1000).is_integer():
                 print "Tweet NO "+str(i)+"..."
+    df = pd.DataFrame(dflist,columns=relevant_columns)
+    del dflist
+    return df
+
     
-    # Preprocess the data into our ideal dataframe
-    df = preprocess_dataframe(df)
+if __name__ == "__main__":
+    df = load_dataframe('C:\Users\ASUS\Documents\geotagged_tweets.jsons')
+    #df = preprocess_dataframe(df)
     pp.pprint(df)
