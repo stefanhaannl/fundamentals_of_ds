@@ -11,9 +11,20 @@ from matplotlib.colors import rgb2hex
 from descartes import PolygonPatch
 from shapely.geometry import Polygon, MultiPolygon
 from shapely.geometry import Point
+import pandas as pd
+import numpy as np
 
+# In[0]:
+def load_pandas():
+    """
+    Specify the path, this function returns the pandas dataframe.
+    """
+    pandasfilepath = r'C:\Users\shaan\Documents\true_tweets.pkl'
+    return pd.read_pickle(pandasfilepath)
+    
 # In[1]:
-# Create fake dataset
+# Import dataset
+
 import random
 n = 10000
 i = 0
