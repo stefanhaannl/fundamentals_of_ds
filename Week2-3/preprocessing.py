@@ -119,8 +119,22 @@ def load_dataframe(filename):
     print "Finished loading the dataframe!"
     return df
 
+def load_pandas():
+    """
+    Specify the path, this function returns the pandas dataframe.
+    """
+    pandasfilepath = r'C:\Users\shaan\Documents\true_tweets.pkl'
+    return pd.read_pickle(pandasfilepath)
     
+
+def create_wordseries(df):
+    lst = []
+    for wordlist in df['words']:
+        lst.extend(wordlist)
+    return pd.Series(lst)
+
 if __name__ == "__main__":
-    df = load_dataframe('C:\Users\shaan\Documents\geotagged_tweets.jsons')
-    df = preprocess_dataframe(df)
-    print df.head()
+    #df = load_dataframe('C:\Users\shaan\Documents\geotagged_tweets.jsons')
+    #df = preprocess_dataframe(df)
+    #print df.head()
+    pass
