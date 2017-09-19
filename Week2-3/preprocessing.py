@@ -73,6 +73,7 @@ def preprocess_dataframe(df):
     del df['timestamp_ms']
     
     # remove the tweets without words
+    print "Filtering out empty tweets..."
     df = df[df['words'].apply(lambda x: x != [])]
     
     print "Finished the preprocessing!"
