@@ -12,7 +12,7 @@ def get_location(boundingBox):
 			latitude = (boxCoords[0][1]+boxCoords[1][1]+boxCoords[2][1]+boxCoords[3][1])/4
 		return (longitude, latitude)
 	except:
-		return (longitude, latitude)
+		return (np.nan, np.nan)
     
 #Extracts the hyperlinks from the tweet's content
 def extract_link(text):
@@ -53,18 +53,24 @@ def get_textdict(tweet):
     return (hashtaglist,mentionlist,linklist,' '.join(wordlist).lower(),wordlist)
     
 def preprocess_dataframe(df):
+    print "Starting the preprocessing!"
+    
     # get text_dict
+    print "Extracting the hashtags, mentions, links, text, and words..."
     df['hashtags'], df['mentions'], df['links'], df['text'], df['words'] = zip(*df['text'].apply(get_textdict))
     del df['text']
     
     # get tweet location
-    df['longitude'], df['latitude'] = zip(*df['place/bounding_box/coordinates'].apply(get_location))
-    del df['place/bounding_box/coordinates']
+    print "Extracting the longitude and latitude from the location..."
+    df['longitude'], df['latitude'] = zip(*df['coordinates'].apply(get_location))
+    del df['coordinates']
     
     # get adjusted time and date
+    print "Converting the timestamp to a datetime format..."
     df['datetime'] = (df['timestamp_ms'].apply(int)/ 1e3).apply(datetime.datetime.fromtimestamp)
     del df['timestamp_ms']
-
+    
+    print "Finished the preprocessing!"
     return df
 
 def add_tweet(tweet,relevant_columns_location):
@@ -92,18 +98,20 @@ def load_dataframe(filename):
     """
     relevant_columns = ['place/bounding_box/coordinates','place/country','timestamp_ms','text','retweeted','user/screen_name']
     relevant_columns_locations = [column.split('/') for column in relevant_columns]
+    print "Start loading the dataframe!"
     dflist = []
     with open(filename) as data_file:    
         for i, line in enumerate(data_file):
             dflist.append(add_tweet(line,relevant_columns_locations))
-            if (float(i)/1000).is_integer():
+            if (float(i)/10000).is_integer():
                 print "Tweet NO "+str(i)+"..."
-    df = pd.DataFrame(dflist,columns=relevant_columns)
+    df = pd.DataFrame(dflist,columns=[column[-1] for column in relevant_columns_locations])
     del dflist
+    print "Finished loading the dataframe!"
     return df
 
     
 if __name__ == "__main__":
-    df = load_dataframe('C:\Users\ASUS\Documents\geotagged_tweets.jsons')
-    #df = preprocess_dataframe(df)
-    pp.pprint(df)
+    df = load_dataframe('C:\Users\shaan\Documents\geotagged_tweets.jsons')
+    df = preprocess_dataframe(df)
+    print df.head()
