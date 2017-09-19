@@ -47,7 +47,9 @@ def get_textdict(tweet):
         # normal word    
         else:
             lowerword = word.lower()
-            wordlist.append(lowerword)
+            cleaned_lowerword = RegexpTokenizer(r'\w+').tokenize(lowerword)
+            for word in cleaned_lowerword:
+                wordlist.append(str(word))
                 
     return (hashtaglist,mentionlist,linklist,' '.join(wordlist).lower(),wordlist)
     
