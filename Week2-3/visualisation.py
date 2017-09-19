@@ -7,6 +7,7 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 import pprint as pp
 import matplotlib.cm as cm
+import numpy.random as nprnd
 from matplotlib.colors import rgb2hex
 from descartes import PolygonPatch
 from shapely.geometry import Polygon, MultiPolygon
@@ -37,10 +38,34 @@ for i in range(i, n):
     tweetjes[i] = {'longitude': rand_lon, 'latitude': rand_lat, 'name': name}
     
 df_tweetjes = pd.DataFrame.from_dict(tweetjes, orient='index')
+df_tweetjes.sentiment = nprnd.randint(1, size=len(df_tweetjes))
 
 
 # In[2]
 
+def sentiment_tweets(df_tweetjes, S_DIR, Fname):
+    # Calculate sentiment per state
+    posSen = df_tweetjes[df_tweetjes.sentiment == 1]
+    
+    us = gpd.read_file(S_DIR+Fname)
+
+    tweet_point = [Point(xy) for xy in zip(posSen.longitude, posSen.latitude)]
+
+    geo_tweet = gpd.GeoDataFrame({"geometry": tweet_point, "name": posSen["name"]})
+
+    # Set coordinate system (WGS 84)
+    us.crs = {'init': 'epsg:4326'}
+    geo_tweet.crs = {'init': 'epsg:4326'}
+
+    # Calculate intersections per state
+    us_pos_tweets = gpd.tools.sjoin(geo_tweet, us, how = "right", op = 'intersects')
+    state_pos_tweets = us_pos_tweets.groupby("STATE_NAME").size()
+    
+    sum_tweets(df_tweetjes, S_DIR, Fname)
+    state_pos_percent = state_pos_tweets / state_tweets
+    
+    return state_pos_percent, state_pos_tweets
+    
 def sum_tweets(df_tweetjes, S_DIR, Fname):
     # Sum total amount of tweets per state
     us = gpd.read_file(S_DIR+Fname)
@@ -55,6 +80,7 @@ def sum_tweets(df_tweetjes, S_DIR, Fname):
 
     # Calculate intersections per state
     us_tweets = gpd.tools.sjoin(geo_tweet, us, how = "right", op = 'intersects')
+    pp.pprint(us_tweets)
     state_tweets = us_tweets.groupby("STATE_NAME").size()
     
     return state_tweets
@@ -347,7 +373,7 @@ if __name__ == "__main__":
         data = json.load(rf)
     
     # Group amount of tweets by state and calculate tweets / citizen
-    state_tweets = sum_tweets(df_tweetjes, S_DIR, Fname)
+    state_tweets = sentiment_tweets(df_tweetjes, S_DIR, Fname)
     state_tweets_1000 = per_inhabitant(population_data_all,state_tweets)
     
     # plot states
