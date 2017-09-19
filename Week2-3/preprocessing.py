@@ -1,5 +1,4 @@
 import json
-import pprint as pp
 import pandas as pd
 import numpy as np
 import re
@@ -70,6 +69,9 @@ def preprocess_dataframe(df):
     df['datetime'] = (df['timestamp_ms'].apply(int)/ 1e3).apply(datetime.datetime.fromtimestamp)
     del df['timestamp_ms']
     
+    # remove the tweets without words
+    df = df[df['words'].apply(lambda x: x != [])]
+    
     print "Finished the preprocessing!"
     return df
 
@@ -102,7 +104,10 @@ def load_dataframe(filename):
     dflist = []
     with open(filename) as data_file:    
         for i, line in enumerate(data_file):
-            dflist.append(add_tweet(line,relevant_columns_locations))
+            #filter the tweets on US tweets
+            tweet = add_tweet(line,relevant_columns_locations)
+            if (tweet[1] == 'United States') and (np.nan not in tweet)
+                dflist.append(tweet)
             if (float(i)/10000).is_integer():
                 print "Tweet NO "+str(i)+"..."
     df = pd.DataFrame(dflist,columns=[column[-1] for column in relevant_columns_locations])
