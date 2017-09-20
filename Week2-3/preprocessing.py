@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import re
 import datetime
+import time
 from nltk import tokenize
 
 def get_location(boundingBox):
@@ -38,7 +39,8 @@ def get_textdict(tweet):
     OUTPUT: tuple of lists.
     """
     # divide words
-    tweet = tweet.encode('ascii','ignore')
+    if isinstance(tweet, unicode):
+        tweet = tweet.encode('ascii','ignore')
     textlist = str(tweet).split()
     hashtaglist=[]
     mentionlist = []
@@ -93,12 +95,25 @@ def preprocess_dataframe(df):
         df['datetime'] = (df['timestamp_ms'].apply(int)/ 1e3).apply(datetime.datetime.fromtimestamp)
         del df['timestamp_ms']
     elif 'created_at' in df.columns:
-        df['datetime'] = df['created_at'].apply(lambda x: datetime.strptime(x, '%m-%d-%Y %H:%M:%S'))
+        df['datetime'] = df['created_at'].apply(lambda x: datetime.datetime(*time.strptime(x, '%m-%d-%Y %H:%M:%S')[:6]))
         del df['created_at']
-        
+
     # remove the tweets without words
     print "Filtering out empty tweets..."
     df = df[df['words'].apply(lambda x: x != [])]
+    
+    # drop the country column
+    if 'country' in df.columns:
+        del df['country']
+        
+    # set screen_name if trump
+    if 'screen_name' not in df.columns:
+        df['screen_name'] == 'TRUMP'
+        
+    # set nan values for longitude and latitude
+    if 'longitude' not in df.columns:
+        df['longitude'] = np.nan
+        df['latitude'] = np.nan
     
     print "Finished the preprocessing!"
     return df
@@ -170,11 +185,14 @@ def create_wordseries(df_series):
 def load_trumptweets(path):
     print "Loading the trump csv file..."
     df = pd.read_csv(path, usecols = ['text','created_at','retweet_count','favorite_count','is_retweet'])
+    print "Trump file loaded! Relevant information extracted!
     return df
 
 
 if __name__ == "__main__":
-    #df = load_pandas()
-    df_trump = load_trumptweets('data/trumptweets.csv')
+    #df = load_dataframe(r'C:\Users\shaan\Documents\geotagged_tweets.jsons')
+    #df_trump = load_trumptweets('data/trumptweets.csv')
     #df = preprocess_dataframe(df)
     #print df.head()
+    pass
+    
