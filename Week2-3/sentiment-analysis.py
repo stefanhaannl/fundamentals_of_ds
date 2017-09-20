@@ -14,10 +14,12 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import SGDClassifier
 from nltk.classify import maxent
 
+import ast
 import numpy as np
 import string
 import pprint as pp
 import csv
+import pandas as pd
 
 import matplotlib.pyplot as plt
 import matplotlib
@@ -56,8 +58,8 @@ def plot_graph(accuracy_dict):
     rects1[1].set_color('r')
     rects1[2].set_color('b')
     rects1[3].set_color('g')
-    rects1[4].set_color('c')
-    rects1[5].set_color('m')
+    #rects1[4].set_color('c')
+    #rects1[5].set_color('m')
     
     plt.xlabel('Classifiers')
     plt.ylabel('Accuracy')
@@ -96,7 +98,7 @@ def compare_algorithms(trainfeats, testfeats):
     accuracy_dict['SGD']= accuracySGD
     print "Accuracy: ", accuracySGD
     print ""
-    
+    """
     # Gaussian NB
     print "Gaussian NB"
     classifierGNB = SklearnClassifier(GaussianNB(), sparse=False).train(trainfeats)
@@ -104,7 +106,7 @@ def compare_algorithms(trainfeats, testfeats):
     accuracy_dict['Gaussian NB']= accuracyGNB
     print "Accuracy: ", accuracyGNB
     print ""
-    
+    """
     # Multinomial NB
     print "Multinomial NB"
     classifierM = SklearnClassifier(MultinomialNB()).train(trainfeats)
@@ -113,6 +115,7 @@ def compare_algorithms(trainfeats, testfeats):
     print "Accuracy: ", accuracyM
     print ""
     
+    """
     # Maximument
     print "Maximum entropy"
     classifierME =  maxent.MaxentClassifier.train(trainfeats, max_iter =20)
@@ -120,7 +123,7 @@ def compare_algorithms(trainfeats, testfeats):
     accuracy_dict['MaxEnt']= accuracyME
     print "Accuracy: ", accuracyME
     print ""
-    
+    """
     plot_graph(accuracy_dict)
 
 # In this function we perform the entire cleaning
@@ -174,9 +177,7 @@ def create_train_test(positiveTweets, negativeTweets, train_proportion):
     
     return trainfeats, testfeats
     
-def add_sentiment(df):
-    # TO DO: script that adds sentiment column to dataframe 
-    # STEPS: 
+def add_sentiment(df, trainfeats):
     # train model
     classifierNB = NaiveBayesClassifier.train(trainfeats)
     
@@ -209,19 +210,31 @@ if __name__ == "__main__":
     
     # create datasbase of negative and positive tweets
     datafile = 'Sentiment Analysis Dataset.csv'
-    used_tweets = 10000
+    used_tweets = 100000
     positiveTweets, negativeTweets = createDatabase(used_tweets, datafile)
 
     # split train en test set
-    train_proportion = float(3)/float(4)
+    train_proportion = float(7)/float(8)
     trainfeats, testfeats = create_train_test(positiveTweets, negativeTweets, train_proportion)
+    
+    # make pickle dataframe
+    train_df = pd.DataFrame()
+    train_df['tuples'] = trainfeats
+    train_df.to_pickle("train.pkl")
+    
+    """
+    # read pickle ; only use for testing
+    #df = pd.read_pickle("train.pkl")
+    #train_list = df.tuples.tolist()
+  
+    #classifierNB = NaiveBayesClassifier.train(tuple_list)
+    #prediction = classifierNB.classify(word_feats(wordlist))
+    #pp.pprint(prediction)
+    """ 
+   
     print 'train on %d instances, test on %d instances' % (len(trainfeats), len(testfeats))
 
     # compare algorithms to choose best model (NAive Bayes best -> see graph)
     compare_algorithms(trainfeats, testfeats)
     
-    # adds sentiment column to dataframe
-    """
-    df = preprocessing
-    df = add_sentiment(df)
-    """
+    
