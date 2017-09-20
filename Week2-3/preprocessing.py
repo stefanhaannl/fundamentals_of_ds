@@ -11,12 +11,12 @@ def get_location(boundingBox):
     INPUT: list BoundingBox
     OUTPUT: tuple of longitude and latitude
     """
-	try:
+    try:
 		for boxCoords in boundingBox:
 			longitude = (boxCoords[0][0]+boxCoords[1][0]+boxCoords[2][0]+boxCoords[3][0])/4
 			latitude = (boxCoords[0][1]+boxCoords[1][1]+boxCoords[2][1]+boxCoords[3][1])/4
 		return (longitude, latitude)
-	except:
+    except:
 		return (np.nan, np.nan)
     
 def extract_link(text):
