@@ -3,11 +3,8 @@ import pandas as pd
 import numpy as np
 import re
 import datetime
-<<<<<<< HEAD
 import time
-=======
 import pprint as pp
->>>>>>> be1df297d3932e1e0b77c88b2b25a2f2734ee618
 from nltk import tokenize
 from nltk.classify import NaiveBayesClassifier
 
@@ -110,16 +107,12 @@ def preprocess_dataframe(df):
     # drop the country column
     if 'country' in df.columns:
         del df['country']
-        
-    # set screen_name if trump
-    if 'screen_name' not in df.columns:
-        df['screen_name'] == 'TRUMP'
-        
-    # set nan values for longitude and latitude
-    if 'longitude' not in df.columns:
-        df['longitude'] = np.nan
-        df['latitude'] = np.nan
     
+    # rename the is_retweet column to retweeted
+    if 'is_retweet' in df.columns:
+        df['retweeted'] = df['is_retweet']
+        del df['is_retweet']
+        
     print "Finished the preprocessing!"
     return df
 
@@ -190,8 +183,9 @@ def create_wordseries(df_series):
 def load_trumptweets(path):
     print "Loading the trump csv file..."
     df = pd.read_csv(path, usecols = ['text','created_at','retweet_count','favorite_count','is_retweet'])
-    print "Trump file loaded! Relevant information extracted!
+    print "Trump file loaded! Relevant information extracted!"
     return df
+
 def word_feats(words): 
     #Create a dictionary
     return dict([(word, True) for word in words])
@@ -227,31 +221,8 @@ def add_sentiment(df, trainfeats):
     return df
     
 if __name__ == "__main__":
-<<<<<<< HEAD
-    #df = load_dataframe(r'C:\Users\shaan\Documents\geotagged_tweets.jsons')
-    #df_trump = load_trumptweets('data/trumptweets.csv')
-    #df = preprocess_dataframe(df)
-    #print df.head()
-    pass
-    
-=======
-    #df = load_pandas()
-    #df_trump = load_trumptweets('data/trumptweets.csv')
-    #df = preprocess_dataframe(df)
-    #print df.head()
-    
-    
-    df = load_dataframe('tweets_sample.jsons')
+    df = load_dataframe(r'C:\Users\shaan\Documents\geotagged_tweets.jsons')
+    df_trump = load_trumptweets(r'data\trumptweets.csv')
     df = preprocess_dataframe(df)
+    df_trump = preprocess_dataframe(df_trump)
     
-    # get trainingset
-    trainpickle = pd.read_pickle("train.pkl")
-    trainset = trainpickle.tuples.tolist()
-    
-    # add sentument
-    df = add_sentiment(df, trainset)
-    pp.pprint(df)
-    
-    #print df.head()
-    pass
->>>>>>> be1df297d3932e1e0b77c88b2b25a2f2734ee618
