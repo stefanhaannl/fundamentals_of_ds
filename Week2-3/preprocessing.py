@@ -82,15 +82,20 @@ def preprocess_dataframe(df):
     del df['text']
     
     # get tweet location
-    print "Extracting the longitude and latitude from the location..."
-    df['longitude'], df['latitude'] = zip(*df['coordinates'].apply(get_location))
-    del df['coordinates']
+    if 'coordinates' in df.columns:        
+        print "Extracting the longitude and latitude from the location..."
+        df['longitude'], df['latitude'] = zip(*df['coordinates'].apply(get_location))
+        del df['coordinates']
     
     # get adjusted time and date
     print "Converting the timestamp to a datetime format..."
-    df['datetime'] = (df['timestamp_ms'].apply(int)/ 1e3).apply(datetime.datetime.fromtimestamp)
-    del df['timestamp_ms']
-    
+    if 'timestamp_ms' in df.columns:
+        df['datetime'] = (df['timestamp_ms'].apply(int)/ 1e3).apply(datetime.datetime.fromtimestamp)
+        del df['timestamp_ms']
+    elif 'created_at' in df.columns:
+        df['datetime'] = df['created_at'].apply(lambda x: datetime.strptime(x, '%m-%d-%Y %H:%M:%S'))
+        del df['created_at']
+        
     # remove the tweets without words
     print "Filtering out empty tweets..."
     df = df[df['words'].apply(lambda x: x != [])]
@@ -162,9 +167,14 @@ def create_wordseries(df_series):
         lst.extend(wordlist)
     return pd.Series(lst)
 
+def load_trumptweets(path):
+    print "Loading the trump csv file..."
+    df = pd.read_csv(path, usecols = ['text','created_at','retweet_count','favorite_count','is_retweet'])
+    return df
+
 
 if __name__ == "__main__":
-    #df = load_dataframe('C:\Users\shaan\Documents\geotagged_tweets.jsons')
+    #df = load_pandas()
+    df_trump = load_trumptweets('data/trumptweets.csv')
     #df = preprocess_dataframe(df)
     #print df.head()
-    pass
