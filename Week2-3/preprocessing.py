@@ -3,8 +3,13 @@ import pandas as pd
 import numpy as np
 import re
 import datetime
+<<<<<<< HEAD
 import time
+=======
+import pprint as pp
+>>>>>>> be1df297d3932e1e0b77c88b2b25a2f2734ee618
 from nltk import tokenize
+from nltk.classify import NaiveBayesClassifier
 
 def get_location(boundingBox):
     """
@@ -13,12 +18,12 @@ def get_location(boundingBox):
     OUTPUT: tuple of longitude and latitude
     """
     try:
-		for boxCoords in boundingBox:
-			longitude = (boxCoords[0][0]+boxCoords[1][0]+boxCoords[2][0]+boxCoords[3][0])/4
-			latitude = (boxCoords[0][1]+boxCoords[1][1]+boxCoords[2][1]+boxCoords[3][1])/4
-		return (longitude, latitude)
+        for boxCoords in boundingBox:
+            longitude = (boxCoords[0][0]+boxCoords[1][0]+boxCoords[2][0]+boxCoords[3][0])/4
+            latitude = (boxCoords[0][1]+boxCoords[1][1]+boxCoords[2][1]+boxCoords[3][1])/4
+        return (longitude, latitude)
     except:
-		return (np.nan, np.nan)
+        return (np.nan, np.nan)
     
 def extract_link(text):
     """
@@ -187,12 +192,66 @@ def load_trumptweets(path):
     df = pd.read_csv(path, usecols = ['text','created_at','retweet_count','favorite_count','is_retweet'])
     print "Trump file loaded! Relevant information extracted!
     return df
-
-
+def word_feats(words): 
+    #Create a dictionary
+    return dict([(word, True) for word in words])
+    
+def add_sentiment(df, trainfeats):
+    # train model
+    classifierNB = NaiveBayesClassifier.train(trainfeats)
+    
+    # init sentiment predictions
+    sentiment_predictions = []
+    
+    # For each row of our tweet dataframe
+    i=0
+    for i in range(i,len(df)):
+        
+        # get tweet
+        wordlist = df['words'].iloc[i]
+        #wordlist = ['I', 'hate', 'you' ]
+        
+        # predict sentiment
+        prediction = classifierNB.classify(word_feats(wordlist))
+        if prediction == 'pos':
+            prediction = 1
+        else:
+            prediction = 0
+        
+        # add sentiment to list
+        sentiment_predictions.append(prediction)
+        
+    #add list as sentiment column dataframe
+    df['sentiment'] = sentiment_predictions
+    
+    return df
+    
 if __name__ == "__main__":
+<<<<<<< HEAD
     #df = load_dataframe(r'C:\Users\shaan\Documents\geotagged_tweets.jsons')
     #df_trump = load_trumptweets('data/trumptweets.csv')
     #df = preprocess_dataframe(df)
     #print df.head()
     pass
     
+=======
+    #df = load_pandas()
+    #df_trump = load_trumptweets('data/trumptweets.csv')
+    #df = preprocess_dataframe(df)
+    #print df.head()
+    
+    
+    df = load_dataframe('tweets_sample.jsons')
+    df = preprocess_dataframe(df)
+    
+    # get trainingset
+    trainpickle = pd.read_pickle("train.pkl")
+    trainset = trainpickle.tuples.tolist()
+    
+    # add sentument
+    df = add_sentiment(df, trainset)
+    pp.pprint(df)
+    
+    #print df.head()
+    pass
+>>>>>>> be1df297d3932e1e0b77c88b2b25a2f2734ee618
