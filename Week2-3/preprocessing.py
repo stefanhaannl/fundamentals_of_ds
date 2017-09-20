@@ -6,6 +6,11 @@ import datetime
 from nltk import tokenize
 
 def get_location(boundingBox):
+    """
+    Extracts the boxcoords from a boundingbox value to a longitude and latitude. Returns NaN if the value is not accessible.
+    INPUT: list BoundingBox
+    OUTPUT: tuple of longitude and latitude
+    """
 	try:
 		for boxCoords in boundingBox:
 			longitude = (boxCoords[0][0]+boxCoords[1][0]+boxCoords[2][0]+boxCoords[3][0])/4
@@ -14,8 +19,12 @@ def get_location(boundingBox):
 	except:
 		return (np.nan, np.nan)
     
-#Extracts the hyperlinks from the tweet's content
 def extract_link(text):
+    """
+    Extract links from at text using reges
+    INPUT: text
+    OUTPUT: list of links
+    """
     regex = r'https?://[^\s<>"]+|www\.[^\s<>"]+'
     match = re.search(regex, text)
     if match:
@@ -23,6 +32,11 @@ def extract_link(text):
     return ''
     
 def get_textdict(tweet):
+    """
+    Converts the text of a tweet to a list of hashtags, mentions, links and words.
+    INPUT: string of tweet text
+    OUTPUT: tuple of lists.
+    """
     # divide words
     tweet = tweet.encode('ascii','ignore')
     textlist = str(tweet).split()
@@ -55,6 +69,11 @@ def get_textdict(tweet):
     return (hashtaglist,mentionlist,linklist,' '.join(wordlist).lower(),wordlist)
     
 def preprocess_dataframe(df):
+    """
+    Preprocesses the dataframe. Extracts the hashtags, mentions, links, text and words from the text. Longitude and latitude from the location. Adjusted timedat. Filter on tweets which only contains words.
+    INPUT: Pandas Dataframe
+    OUTPUT: Pandas Dataframe
+    """
     print "Starting the preprocessing!"
     
     # get text_dict
@@ -81,7 +100,9 @@ def preprocess_dataframe(df):
 
 def add_tweet(tweet,relevant_columns_location):
     """
-    Converts a json text line to a list entry that only contains our relevant data
+    Converts a json text line to a list entry that only contains our relevant data. Filteres out the rest of the tweet data.
+    INPUT: str: tweet, list: relevant_columns_location (for nested information)
+    OUTPUT: list of relevant columns extracted
     """
     struct = json.loads(tweet)
     d = []
@@ -100,7 +121,9 @@ def add_tweet(tweet,relevant_columns_location):
 
 def load_dataframe(filename):
     """
-    Load and returns the dataframe for a given filename (jsons)
+    Load and returns the dataframe for a given filename (jsons). Relevant columns are specified in the function.
+    INPUT: Filepath
+    OUTPUT: Pandas dataframe of relevant columns
     """
     relevant_columns = ['place/bounding_box/coordinates','place/country','timestamp_ms','text','retweeted','user/screen_name']
     relevant_columns_locations = [column.split('/') for column in relevant_columns]
@@ -121,17 +144,24 @@ def load_dataframe(filename):
 
 def load_pandas():
     """
-    Specify the path, this function returns the pandas dataframe.
+    Reads a .pkl file for a dataframe format. Specifiy the path in the function.
+    OUTPUT: Pandas Dataframe
     """
     pandasfilepath = r'C:\Users\shaan\Documents\true_tweets.pkl'
     return pd.read_pickle(pandasfilepath)
     
 
-def create_wordseries(df):
+def create_wordseries(df_series):
+    """
+    Converts a pandas series of of lists to a pandas series of all values in the combined lists. Can be used on the words column of a dataset to acquire a series of all the used words.
+    INPUT: Pandas Series
+    OUTPUT: Pandas Series
+    """
     lst = []
-    for wordlist in df['words']:
+    for wordlist in df_series:
         lst.extend(wordlist)
     return pd.Series(lst)
+
 
 if __name__ == "__main__":
     #df = load_dataframe('C:\Users\shaan\Documents\geotagged_tweets.jsons')
