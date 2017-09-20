@@ -57,6 +57,7 @@ def plot_graph(accuracy_dict):
     rects1[2].set_color('b')
     rects1[3].set_color('g')
     rects1[4].set_color('c')
+    rects1[5].set_color('m')
     
     plt.xlabel('Classifiers')
     plt.ylabel('Accuracy')
@@ -110,6 +111,14 @@ def compare_algorithms(trainfeats, testfeats):
     accuracyM =  nltk.classify.util.accuracy(classifierM, testfeats)
     accuracy_dict['Multinomial NB']= accuracyM
     print "Accuracy: ", accuracyM
+    print ""
+    
+    # Maximument
+    print "Maximum entropy"
+    classifierME =  maxent.MaxentClassifier.train(trainfeats, max_iter =20)
+    accuracyME =  nltk.classify.util.accuracy(classifierME, testfeats)
+    accuracy_dict['MaxEnt']= accuracyME
+    print "Accuracy: ", accuracyME
     print ""
     
     plot_graph(accuracy_dict)
