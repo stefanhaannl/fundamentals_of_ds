@@ -3,6 +3,7 @@ from nltk.corpus import sentiwordnet as swn
 from nltk.corpus import stopwords 
 from nltk.stem.wordnet import WordNetLemmatizer
 import nltk.classify.util
+from random import shuffle
 
 #classifiers
 from nltk.classify import NaiveBayesClassifier
@@ -46,7 +47,7 @@ def plot_graph(accuracy_dict):
     accuracy_values  = accuracy_dict.values()
     fig, ax = plt.subplots()
     index = np.arange(n_groups)
-    bar_width = 0.55
+    bar_width = 0.25
     opacity = 0.4
     error_config = {'ecolor': '0.3'}
 
@@ -61,7 +62,7 @@ def plot_graph(accuracy_dict):
     #rects1[4].set_color('c')
     #rects1[5].set_color('m')
     
-    plt.xlabel('Classifiers')
+    plt.xlabel('K-fold subsets of dataset')
     plt.ylabel('Accuracy')
     plt.title('Comparing classifiers for sentiment analysis')
     plt.xticks(index+bar_width, (accuracy_dict.keys()))
@@ -70,6 +71,61 @@ def plot_graph(accuracy_dict):
     plt.tight_layout()
     plt.show()
  
+def plot_graph2(nb_dict, m_dict, sgd_dict, b_dict):
+    """
+    Plot accuracy results for all possible algorithms
+    """
+    n_groups= len(nb_dict)
+    
+    nb_values  = nb_dict.values()
+    m_values  = m_dict.values()
+    sgd_values  = sgd_dict.values()
+    b_values = b_dict.values()
+    
+    fig, ax = plt.subplots()
+    index = np.arange(n_groups)
+    bar_width = 0.2
+    opacity = 0.4
+    error_config = {'ecolor': '0.3'}
+
+    rects1 = plt.bar(index -1*bar_width, nb_values, bar_width,
+                     alpha=opacity,
+                     color='b',
+                     error_kw=error_config,
+                     label = 'Naive Bayes')
+    rects2 = plt.bar(index , m_values, bar_width,
+                     alpha=opacity,
+                     color='r',
+                     error_kw=error_config,
+                     label = 'Multinomial NB')
+    rects3 = plt.bar(index+bar_width , sgd_values, bar_width,
+                     alpha=opacity,
+                     color='y',
+                     error_kw=error_config,
+                     label = 'SGD')
+               
+    rects3 = plt.bar(index + 2*bar_width, b_values, bar_width,
+                     alpha=opacity,
+                     color='c',
+                     error_kw=error_config,
+                     label = 'Bernoulli NB')                                       
+    #rects1[0].set_color('y')
+    #rects1[1].set_color('r')
+    #rects1[2].set_color('b')
+    #rects1[3].set_color('g')
+    #rects1[4].set_color('c')
+    #rects1[5].set_color('m')
+    
+    plt.xlabel('K-fold subsets of dataset')
+    plt.ylabel('Accuracy')
+    plt.title('Comparing classifiers for sentiment analysis')
+    mylist = nb_dict.keys()
+    plt.xticks(index+bar_width, ([x+1 for x in mylist]))
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
+    
 def compare_algorithms(trainfeats, testfeats):
     accuracy_dict = {}
     
@@ -176,7 +232,8 @@ def create_train_test(positiveTweets, negativeTweets, train_proportion):
     testfeats = negativeTweets[negcutoff:] + positiveTweets[poscutoff:]
     
     return trainfeats, testfeats
-    
+ 
+       
 def add_sentiment(df, trainfeats):
     # train model
     classifierNB = NaiveBayesClassifier.train(trainfeats)
@@ -203,24 +260,62 @@ def add_sentiment(df, trainfeats):
     
     return df
     
+ 
+def k_test(kfolds, dataset):
+	num_folds = kfolds
+	subset_size = len(dataset)/num_folds
+	nb_dict = {}
+	m_dict ={}
+	sgd_dict ={}
+	b_dict = {}
+	
+	for i in range(num_folds):
+		testing_this_round = dataset[i*subset_size:][:subset_size]
+		training_this_round = dataset[:i*subset_size] + dataset[(i+1)*subset_size:]
+		
+		# train using training_this_round
+		classifierNB = NaiveBayesClassifier.train(training_this_round)
+		classifierM = SklearnClassifier(MultinomialNB()).train(training_this_round)
+		classifierSGD = SklearnClassifier(SGDClassifier()).train(training_this_round)
+		classifierB = SklearnClassifier(BernoulliNB()).train(training_this_round)
+		
+		# evaluate against testing_this_round
+		accuracyNB =  nltk.classify.util.accuracy(classifierNB, testing_this_round)
+		accuracyM =  nltk.classify.util.accuracy(classifierM, testing_this_round)
+		accuracySGD =  nltk.classify.util.accuracy(classifierSGD, testing_this_round)
+		accuracyB =  nltk.classify.util.accuracy(classifierB, testing_this_round)
     
+		# save accuracy
+		nb_dict[i] = accuracyNB
+		m_dict[i]  = accuracyM
+		sgd_dict[i] = accuracySGD
+		b_dict[i] = accuracyB
+		
+	return nb_dict, m_dict, sgd_dict, b_dict
+   
 if __name__ == "__main__":
 
     ##### Train and test on twitter database ####
     
     # create datasbase of negative and positive tweets
     datafile = 'Sentiment Analysis Dataset.csv'
-    used_tweets = 100000
+    used_tweets = 10000
     positiveTweets, negativeTweets = createDatabase(used_tweets, datafile)
-
+    trainfeats = positiveTweets + negativeTweets
+    print (trainfeats[0:2])
+    shuffle(trainfeats)
+    print (trainfeats[0:2])
+    
+    nb_dict, m_dict, sgd_dict, b_dict = k_test(4, trainfeats)
+    plot_graph2(nb_dict, m_dict,sgd_dict, b_dict)
     # split train en test set
-    train_proportion = float(7)/float(8)
-    trainfeats, testfeats = create_train_test(positiveTweets, negativeTweets, train_proportion)
+    #train_proportion = float(7)/float(8)
+    #trainfeats, testfeats = create_train_test(positiveTweets, negativeTweets, train_proportion)
     
     # make pickle dataframe
-    train_df = pd.DataFrame()
-    train_df['tuples'] = trainfeats
-    train_df.to_pickle("train.pkl")
+    #train_df = pd.DataFrame()
+    #train_df['tuples'] = trainfeats
+    #train_df.to_pickle("train1mil.pkl")
     
     """
     # read pickle ; only use for testing
@@ -232,9 +327,9 @@ if __name__ == "__main__":
     #pp.pprint(prediction)
     """ 
    
-    print 'train on %d instances, test on %d instances' % (len(trainfeats), len(testfeats))
+    #print 'train on %d instances, test on %d instances' % (len(trainfeats), len(testfeats))
 
     # compare algorithms to choose best model (NAive Bayes best -> see graph)
-    compare_algorithms(trainfeats, testfeats)
+    #compare_algorithms(trainfeats, testfeats)
     
     
