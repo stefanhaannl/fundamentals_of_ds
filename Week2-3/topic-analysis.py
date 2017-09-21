@@ -2,8 +2,10 @@ import numpy as np
 import pandas as pd
 import string
 import pickle
+import gensim
 from nltk.corpus import stopwords 
 from nltk.stem.wordnet import WordNetLemmatizer
+from gensim import corpora,models,similarities
 
 def clean(doc):
     """
@@ -37,33 +39,40 @@ def cluster_by_hashtags(df,n):
     """
     pass
 
-<<<<<<< HEAD
 def testDoc():
-    doc1 = "Working out is great for the body. Fitness makes you feel good."
-    doc2 = "Red cars are faster than blue cars."
-    doc3 = "Doctors suggest that fitness increases muscle mass and speeds up metabolism."
-    doc4 = "Cars with electrical engines cause less polution than cars with internal combustion engines."
-    doc5 = "Pushups make a good upper body excercise."
+    doc1 = "Axel is the hero of this Data Science Group"
+    doc2 = "Information Studies Data Science is awsome"
+    doc3 = "Do you know Axel he is a hero in Data Science Daniel"
+    doc4 = "Daniel exist which is probably a good thing"
+    doc5 = "Daniel oh Daniel are you my lover"
 
     # compile documents
     doc_complete = [doc1, doc2, doc3, doc4, doc5]
     doc_clean = [clean(doc).split() for doc in doc_complete]
-    return doc_clean
-=======
-# Create a set of stopwords
-stop = set(stopwords.words('english'))
+    # Creating the term dictionary of our courpus, where every unique term is assigned an index
+    dictionary = corpora.Dictionary(doc_clean)
+    # Converting list of documents (corpus) into Document Term Matrix using dictionary prepared above.
+    doc_term_matrix = [dictionary.doc2bow(doc) for doc in doc_clean]
+    # Creating the object for LDA model using gensim library
+    Lda = gensim.models.ldamodel.LdaModel
+    # Running and Trainign LDA model on the document term matrix.
+    ldamodel = Lda(doc_term_matrix, num_topics=5, id2word = dictionary, passes=100)
+    return ldamodel
 
-# This is the function makeing the lemmatization
-lemma = WordNetLemmatizer()
+def printTopics(ldamodel, maxNumberofTopics, wordsPerTopic):
+    """  
+    prints the consturcted topics
+    Input: ldamodel, maximum numbers of topics you want to be printed, 
+        number of words you want printed
+    """
+    topics = ldamodel.print_topics(num_topics=3, num_words=8)
+    i=0
+    for topic in topics:
+        print "Topic",i ,"->", topic
+        i+=1
 
-doc1 = "Working out is great for the body. Fitness makes you feel good."
-doc2 = "Red cars are faster than blue cars."
-doc3 = "Doctors suggest that fitness increases muscle mass and speeds up metabolism."
-doc4 = "Cars with electrical engines cause less polution than cars with internal combustion engines."
-doc5 = "Pushups make a good upper body excercise."
+def topicNewDoc(ldamodel, doc):
+    vec_bow = dictionary.doc2bow(doc.lower().split())
+    return(ldamodel[vec_bow])
 
-# compile documents
-doc_complete = [doc1, doc2, doc3, doc4, doc5]
-doc_clean = [clean(doc).split() for doc in doc_complete] 
->>>>>>> b9da38578cdd486a015e5c47c277a9f3ffff7444
 
