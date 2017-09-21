@@ -7,21 +7,23 @@ from nltk.corpus import stopwords
 from nltk.stem.wordnet import WordNetLemmatizer
 from gensim import corpora,models,similarities
 
-def clean(doc):
+def clean_words(doc):
     """
     Remove stopwords from string and normalize words in string
-    INPUT: List of strings(which are the documents)
-    OUTPUT: List of list of words
+    INPUT: Series of wordlists(which are the documents)
+    OUTPUT: Corpora dictionary of list of words
     """
-    
+    doc = list(doc)
+    result_list = []
     # Create a set of stopwords
     stop = set(stopwords.words('english'))
-
     # This is the function makeing the lemmatization
     lemma = WordNetLemmatizer()
-    stop_free = " ".join([i for i in doc.lower().split() if i not in stop])
-    normalized = " ".join(lemma.lemmatize(word) for word in stop_free.split())
-    return normalized
+    for lst in doc:
+        stop_free = " ".join([i for i in lst if i not in stop])
+        normalized = " ".join(lemma.lemmatize(word) for word in stop_free.split())
+        result_list.append(normalized.split())
+    return result_list
 
 def load_tweets(filepath):
     """
@@ -38,7 +40,6 @@ def cluster_by_hashtags(df,n):
     INPUT: Dataframe with hashtags (list) and text (list) column
     OUTPUT: Dataframe with hashtag (str) and text(list) column
     """
-    
     result_df = []
     hashtags = []
     for lst in df['hashtags']:
@@ -57,23 +58,30 @@ def cluster_by_hashtags(df,n):
     return pd.DataFrame(result_df,columns=['hashtag','words'])
 
 def testDoc():
-    doc1 = "Axel is the hero of this Data Science Group"
-    doc2 = "Information Studies Data Science is awsome"
-    doc3 = "Do you know Axel he is a hero in Data Science Daniel"
-    doc4 = "Daniel exist which is probably a good thing"
-    doc5 = "Daniel oh Daniel are you my lover"
-
-    # compile documents
-    doc_complete = [doc1, doc2, doc3, doc4, doc5]
-    doc_clean = [clean(doc).split() for doc in doc_complete]
-    # Creating the term dictionary of our courpus, where every unique term is assigned an index
+    # Load datafile
+    print "Loading datafile..."
+    df = load_tweets(r'C:\Users\shaan\Documents\true_tweets.pkl')
+    
+    # Clean words
+    print "Cleaning words..."
+    doc_clean = clean_words(df['words'])
+    
+    # Creating a corpora dictionary from the cleaned document
+    print "Generating acorpora dictionary..."
     dictionary = corpora.Dictionary(doc_clean)
     # Converting list of documents (corpus) into Document Term Matrix using dictionary prepared above.
+    
+    print "Convert list of documents into a matrix..."
     doc_term_matrix = [dictionary.doc2bow(doc) for doc in doc_clean]
+    
     # Creating the object for LDA model using gensim library
+    print "Creating an LDA model..."
     Lda = gensim.models.ldamodel.LdaModel
+    
     # Running and Trainign LDA model on the document term matrix.
+    print "Run and train the LDA model on the matrix..."
     ldamodel = Lda(doc_term_matrix, num_topics=5, id2word = dictionary, passes=100)
+    
     return ldamodel
 
 def printTopics(ldamodel, maxNumberofTopics, wordsPerTopic):
