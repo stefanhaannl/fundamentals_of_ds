@@ -60,7 +60,7 @@ def cluster_by_hashtags(df,n):
 def testDoc_loadingpart(filepath):
     # Load datafile
     print "Loading datafile..."
-    df = load_tweets(r'C:\Users\shaan\Documents\true_tweets.pkl')
+    df = load_tweets(filepath)
     
     # Clean words
     print "Cleaning words..."
@@ -86,6 +86,8 @@ def testDoc_testingpart(doc_clean, doc_n = 1000, topic_n = 5, iter_n = 100):
     # Running and Trainign LDA model on the document term matrix.
     print "Run and train the LDA model on the matrix..."
     ldamodel = Lda(doc_term_matrix, num_topics=topic_n, id2word = dictionary, passes=iter_n)
+    
+    print ldamodel.print_topics(num_topics=topic_n, num_words=6)
     
     return ldamodel
 
