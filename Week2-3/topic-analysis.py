@@ -57,7 +57,7 @@ def cluster_by_hashtags(df,n):
         result_df.append([hashtag, words])
     return pd.DataFrame(result_df,columns=['hashtag','words'])
 
-def testDoc():
+def testDoc_loadingpart(filepath):
     # Load datafile
     print "Loading datafile..."
     df = load_tweets(r'C:\Users\shaan\Documents\true_tweets.pkl')
@@ -66,11 +66,16 @@ def testDoc():
     print "Cleaning words..."
     doc_clean = clean_words(df['words'])
     
+    return doc_clean
+
+def testDoc_testingpart(doc_clean, doc_n = 1000, topic_n = 5, iter_n = 100):
+    doc_clean = doc_clean[0:doc_n]
+    
     # Creating a corpora dictionary from the cleaned document
     print "Generating acorpora dictionary..."
     dictionary = corpora.Dictionary(doc_clean)
-    # Converting list of documents (corpus) into Document Term Matrix using dictionary prepared above.
     
+    # Converting list of documents (corpus) into Document Term Matrix using dictionary prepared above.   
     print "Convert list of documents into a matrix..."
     doc_term_matrix = [dictionary.doc2bow(doc) for doc in doc_clean]
     
@@ -80,7 +85,7 @@ def testDoc():
     
     # Running and Trainign LDA model on the document term matrix.
     print "Run and train the LDA model on the matrix..."
-    ldamodel = Lda(doc_term_matrix, num_topics=5, id2word = dictionary, passes=100)
+    ldamodel = Lda(doc_term_matrix, num_topics=topic_n, id2word = dictionary, passes=iter_n)
     
     return ldamodel
 
