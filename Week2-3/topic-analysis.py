@@ -89,9 +89,33 @@ def testDoc_testingpart(doc_clean, doc_n = 1000, topic_n = 5, iter_n = 100):
     print "Run and train the LDA model on the matrix..."
     ldamodel = Lda(doc_term_matrix, num_topics=topic_n, id2word = dictionary, passes=iter_n)
     
-    print ldamodel.print_topics(num_topics=topic_n, num_words=6)
+    printTopics(ldamodel,10,10)
     
     return ldamodel
+
+def testDoc_parameters(filepath, hashtag_n, topic_n, iter_n, outputfile):
+    """
+    Starts an iteration for testing the LDA model on multiple parameters.
+    INPUT filepath: str, the filepath to the pickle file
+    INPUT hashtag_n: list, list of numers of hashtags you want to test
+    INPUT topic_n: list, list of numers of topics you want to test
+    INPUT: iter_n: int, numer of iterations for the model
+    INPUT: outputfile: str, the filepath of where to save the lda models.
+    This function saves every lda model you tested and prints the topics to screen for review.
+    """
+    df = testDoc_loadingpart(filepath,max(hashtag_n))
+    print "Starting testing phase:"
+    print "Hashtags"
+    print hashtag_n
+    print "Topics"
+    print topic_n
+    for hashtag in hashtag_n:
+        for topic in topic_n:
+            print "Simulation for hashtag_n: "+str(hashtag)+" and topic_n: "+str(topic)
+            print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+            lda = testDoc_testingpart(df,hashtag,topic,iter_n)
+            lda.save(filepath+"lda_hashtags"+str(hashtag)+"_topics"+str(topic)+".model")
+            print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
 def printTopics(ldamodel, maxNumberofTopics, wordsPerTopic):
     """  
