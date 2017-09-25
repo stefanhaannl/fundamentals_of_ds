@@ -48,7 +48,6 @@ def cluster_by_hashtags(df,n):
     hashtag_values = hashtags.value_counts()[0:n]
     hashtags_list = hashtag_values.index.values.tolist()
     for hashtag in hashtags_list:
-        print "Filtering words for hashtag: "+hashtag
         words = []
         for row in df.itertuples():
             row = tuple(row)
@@ -57,11 +56,11 @@ def cluster_by_hashtags(df,n):
         result_df.append([hashtag, words])
     return pd.DataFrame(result_df,columns=['hashtag','words'])
 
-def testDoc_loadingpart(filepath):
+def testDoc_loadingpart(filepath,amountHashtags):
     # Load datafile
     print "Loading datafile..."
     df = load_tweets(filepath)
-    
+    df = cluster_by_hashtags(df,amountHashtags)
     # Clean words
     print "Cleaning words..."
     doc_clean = clean_words(df['words'])
@@ -97,7 +96,7 @@ def printTopics(ldamodel, maxNumberofTopics, wordsPerTopic):
     Input: ldamodel, maximum numbers of topics you want to be printed, 
         number of words you want printed
     """
-    topics = ldamodel.print_topics(num_topics=3, num_words=8)
+    topics = ldamodel.print_topics(num_topics=maxNumberofTopics, num_words=wordsPerTopic)
     i=0
     for topic in topics:
         print "Topic",i ,"->", topic
