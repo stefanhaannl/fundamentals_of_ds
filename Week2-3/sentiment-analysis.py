@@ -4,6 +4,7 @@ from nltk.corpus import stopwords
 from nltk.stem.wordnet import WordNetLemmatizer
 import nltk.classify.util
 from random import shuffle
+import cPickle
 
 #classifiers
 from nltk.classify import NaiveBayesClassifier
@@ -267,7 +268,6 @@ def create_train_test(positiveTweets, negativeTweets, train_proportion):
 def add_sentiment(df, trainfeats):
     # train model
     classifierNB =NaiveBayesClassifier.train(trainfeats)
-    classifierSGD =SklearnClassifier(SGDClassifier()).train(trainfeats)
     
     
     # init sentiment predictions
@@ -283,20 +283,11 @@ def add_sentiment(df, trainfeats):
         
         # predict sentiment
         predictionNB = classifierNB.classify(word_feats(wordlist))
-        predictionSGD = classifierSGD.classify(word_feats(wordlist))
-        if (predictionNB == 'pos') and (predictionSGD == 'pos'):
+        if (predictionNB == 'pos'):
             prediction = 1
             
-        elif (predictionNB == 'neg') and (predictionSGD == 'neg'):
-            prediction = 0
-        
-        elif (predictionNB == 'neg') and (predictionSGD == 'pos'):
-            prediction = 1
-        elif (predictionNB == 'pos') and (predictionSGD == 'neg'):
-            prediction = 0
-        
         else:
-            print "Error"
+            prediction = 0
             
         # add sentiment to list
         sentiment_predictions.append(prediction)
@@ -340,26 +331,35 @@ def k_test(kfolds, dataset):
     return nb_dict, m_dict, sgd_dict, b_dict
    
 if __name__ == "__main__":
-
-    ##### Train and test on twitter database ####
     """
+    ##### Train and test on twitter database ####
+    
     # create datasbase of negative and positive tweets
     datafile = 'Sentiment Analysis Dataset.csv'
-    used_tweets = 10000
+    used_tweets = 1000000
     positiveTweets, negativeTweets = createDatabase(used_tweets, datafile)
     trainfeats = positiveTweets + negativeTweets
     shuffle(trainfeats)
     """
     
-    trainfeats = pd.read_pickle('train.pkl')
-    df = pd.read_excel('sentiment_tweets.xlsx')
-    words = df.words
+    trainfeats = pd.read_pickle('train1mil.pkl')
     
-    df = add_sentiment(df, trainfeats.tuples)
+    classifierNB =SklearnClassifier(BernoulliNB()).train(trainfeats.tuples)
+    with open('bnb_classifier1mil.pkl', 'wb') as fid:
+		cPickle.dump(classifierNB, fid) 
+		   
+	"""
+	with open('my_dumped_classifier.pkl', 'rb') as fid:
+    gnb_loaded = cPickle.load(fid)
+	"""
+    #df = pd.read_excel('hand_tweets.xlsx')
+    #words = df.words
     
-    y_pred = df.sentiment
-    y_test = df.hand_classified
-    accuracy = (accuracy_score(y_test, y_pred))*100
+    #df = add_sentiment(df, trainfeats.tuples)
+    
+    #y_pred = df.sentiment
+    #y_test = df.hand_classified
+    #accuracy = (accuracy_score(y_test, y_pred))*100
     #accuracy_dict = {}
     #accuracy_dict['Naive Bayes'] = 0.62
     #accuracy_dict['Multinomial NB'] = 0.56
@@ -368,12 +368,12 @@ if __name__ == "__main__":
     
     #plot_graph(accuracy_dict)
     
-    plt.figure()
-    cnf_matrix = confusion_matrix(y_test, y_pred)
-    plot_confusion_matrix(cnf_matrix, classes=[ 'Negative tweets','Positive tweets'], normalize=False,
-                      title='Confusion matrix Naive Bayes')
+    #plt.figure()
+    #cnf_matrix = confusion_matrix(y_test, y_pred)
+    #plot_confusion_matrix(cnf_matrix, classes=[ 'Negative tweets','Positive tweets'], normalize=False,
+    #                  title='Confusion matrix Naive Bayes')
 
-    plt.show()
+    #plt.show()
     
     #nb_dict, m_dict, sgd_dict, b_dict = k_test(4, trainfeats)
     #plot_graph2(nb_dict, m_dict,sgd_dict, b_dict)
