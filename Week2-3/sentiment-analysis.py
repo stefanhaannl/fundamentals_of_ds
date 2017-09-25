@@ -14,14 +14,16 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import SGDClassifier
 from nltk.classify import maxent
+from sklearn.metrics import confusion_matrix
 
+from sklearn.metrics import accuracy_score
 import ast
 import numpy as np
 import string
 import pprint as pp
 import csv
 import pandas as pd
-
+import itertools
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.style.use('ggplot')
@@ -38,6 +40,39 @@ printable = set(string.printable)
 # This is the function makeing the lemmatization
 lemma = WordNetLemmatizer()
 
+def plot_confusion_matrix(cm,classes,
+                          normalize=False,
+                          title="Confusion matrix voorspelmodel",
+                          cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Confusion matrix voorspelmodel" )
+    else:
+        print('Confusion matrix voorspelmodel')
+
+
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+
+    fmt = '.2f' if normalize else '.2f'
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, format(cm[i, j], fmt),
+                 horizontalalignment="center",
+                 color="gold" if cm[i, j] > thresh else "red")
+
+    plt.tight_layout()
+    plt.ylabel('Real sentiment')
+    plt.xlabel('Predicted sentiment')
+    
 def plot_graph(accuracy_dict):
     """
     Plot accuracy results for all possible algorithms
@@ -47,7 +82,7 @@ def plot_graph(accuracy_dict):
     accuracy_values  = accuracy_dict.values()
     fig, ax = plt.subplots()
     index = np.arange(n_groups)
-    bar_width = 0.25
+    bar_width = 0.55
     opacity = 0.4
     error_config = {'ecolor': '0.3'}
 
@@ -62,9 +97,9 @@ def plot_graph(accuracy_dict):
     #rects1[4].set_color('c')
     #rects1[5].set_color('m')
     
-    plt.xlabel('K-fold subsets of dataset')
+    plt.xlabel('Classifiers')
     plt.ylabel('Accuracy')
-    plt.title('Comparing classifiers for sentiment analysis')
+    plt.title('Comparing classifiers on Election twitter dataset')
     plt.xticks(index+bar_width, (accuracy_dict.keys()))
     plt.legend()
 
@@ -93,6 +128,7 @@ def plot_graph2(nb_dict, m_dict, sgd_dict, b_dict):
                      color='b',
                      error_kw=error_config,
                      label = 'Naive Bayes')
+                     
     rects2 = plt.bar(index , m_values, bar_width,
                      alpha=opacity,
                      color='r',
@@ -108,13 +144,7 @@ def plot_graph2(nb_dict, m_dict, sgd_dict, b_dict):
                      alpha=opacity,
                      color='c',
                      error_kw=error_config,
-                     label = 'Bernoulli NB')                                       
-    #rects1[0].set_color('y')
-    #rects1[1].set_color('r')
-    #rects1[2].set_color('b')
-    #rects1[3].set_color('g')
-    #rects1[4].set_color('c')
-    #rects1[5].set_color('m')
+                     label = 'Bernoulli NB')       
     
     plt.xlabel('K-fold subsets of dataset')
     plt.ylabel('Accuracy')
@@ -236,7 +266,9 @@ def create_train_test(positiveTweets, negativeTweets, train_proportion):
        
 def add_sentiment(df, trainfeats):
     # train model
-    classifierNB = NaiveBayesClassifier.train(trainfeats)
+    classifierNB =NaiveBayesClassifier.train(trainfeats)
+    classifierSGD =SklearnClassifier(SGDClassifier()).train(trainfeats)
+    
     
     # init sentiment predictions
     sentiment_predictions = []
@@ -250,8 +282,22 @@ def add_sentiment(df, trainfeats):
         #wordlist = ['I', 'hate', 'you' ]
         
         # predict sentiment
-        prediction = classifierNB.classify(word_feats(wordlist))
+        predictionNB = classifierNB.classify(word_feats(wordlist))
+        predictionSGD = classifierSGD.classify(word_feats(wordlist))
+        if (predictionNB == 'pos') and (predictionSGD == 'pos'):
+            prediction = 1
+            
+        elif (predictionNB == 'neg') and (predictionSGD == 'neg'):
+            prediction = 0
         
+        elif (predictionNB == 'neg') and (predictionSGD == 'pos'):
+            prediction = 1
+        elif (predictionNB == 'pos') and (predictionSGD == 'neg'):
+            prediction = 0
+        
+        else:
+            print "Error"
+            
         # add sentiment to list
         sentiment_predictions.append(prediction)
         
@@ -262,52 +308,77 @@ def add_sentiment(df, trainfeats):
     
  
 def k_test(kfolds, dataset):
-	num_folds = kfolds
-	subset_size = len(dataset)/num_folds
-	nb_dict = {}
-	m_dict ={}
-	sgd_dict ={}
-	b_dict = {}
-	
-	for i in range(num_folds):
-		testing_this_round = dataset[i*subset_size:][:subset_size]
-		training_this_round = dataset[:i*subset_size] + dataset[(i+1)*subset_size:]
-		
-		# train using training_this_round
-		classifierNB = NaiveBayesClassifier.train(training_this_round)
-		classifierM = SklearnClassifier(MultinomialNB()).train(training_this_round)
-		classifierSGD = SklearnClassifier(SGDClassifier()).train(training_this_round)
-		classifierB = SklearnClassifier(BernoulliNB()).train(training_this_round)
-		
-		# evaluate against testing_this_round
-		accuracyNB =  nltk.classify.util.accuracy(classifierNB, testing_this_round)
-		accuracyM =  nltk.classify.util.accuracy(classifierM, testing_this_round)
-		accuracySGD =  nltk.classify.util.accuracy(classifierSGD, testing_this_round)
-		accuracyB =  nltk.classify.util.accuracy(classifierB, testing_this_round)
+    num_folds = kfolds
+    subset_size = len(dataset)/num_folds
+    nb_dict = {}
+    m_dict ={}
+    sgd_dict ={}
+    b_dict = {}
     
-		# save accuracy
-		nb_dict[i] = accuracyNB
-		m_dict[i]  = accuracyM
-		sgd_dict[i] = accuracySGD
-		b_dict[i] = accuracyB
-		
-	return nb_dict, m_dict, sgd_dict, b_dict
+    for i in range(num_folds):
+        testing_this_round = dataset[i*subset_size:][:subset_size]
+        training_this_round = dataset[:i*subset_size] + dataset[(i+1)*subset_size:]
+        
+        # train using training_this_round
+        classifierNB = NaiveBayesClassifier.train(training_this_round)
+        classifierM = SklearnClassifier(MultinomialNB()).train(training_this_round)
+        classifierSGD = SklearnClassifier(SGDClassifier()).train(training_this_round)
+        classifierB = SklearnClassifier(BernoulliNB()).train(training_this_round)
+        
+        # evaluate against testing_this_round
+        accuracyNB =  nltk.classify.util.accuracy(classifierNB, testing_this_round)
+        accuracyM =  nltk.classify.util.accuracy(classifierM, testing_this_round)
+        accuracySGD =  nltk.classify.util.accuracy(classifierSGD, testing_this_round)
+        accuracyB =  nltk.classify.util.accuracy(classifierB, testing_this_round)
+    
+        # save accuracy
+        nb_dict[i] = accuracyNB
+        m_dict[i]  = accuracyM
+        sgd_dict[i] = accuracySGD
+        b_dict[i] = accuracyB
+        
+    return nb_dict, m_dict, sgd_dict, b_dict
    
 if __name__ == "__main__":
 
     ##### Train and test on twitter database ####
-    
+    """
     # create datasbase of negative and positive tweets
     datafile = 'Sentiment Analysis Dataset.csv'
     used_tweets = 10000
     positiveTweets, negativeTweets = createDatabase(used_tweets, datafile)
     trainfeats = positiveTweets + negativeTweets
-    print (trainfeats[0:2])
     shuffle(trainfeats)
-    print (trainfeats[0:2])
+    """
     
-    nb_dict, m_dict, sgd_dict, b_dict = k_test(4, trainfeats)
-    plot_graph2(nb_dict, m_dict,sgd_dict, b_dict)
+    trainfeats = pd.read_pickle('train.pkl')
+    df = pd.read_excel('sentiment_tweets.xlsx')
+    words = df.words
+    
+    df = add_sentiment(df, trainfeats.tuples)
+    
+    y_pred = df.sentiment
+    y_test = df.hand_classified
+    accuracy = (accuracy_score(y_test, y_pred))*100
+    #accuracy_dict = {}
+    #accuracy_dict['Naive Bayes'] = 0.62
+    #accuracy_dict['Multinomial NB'] = 0.56
+    #accuracy_dict['SGD'] = 0.62
+    #accuracy_dict['Bernoulli NB'] = 0.60
+    
+    #plot_graph(accuracy_dict)
+    
+    plt.figure()
+    cnf_matrix = confusion_matrix(y_test, y_pred)
+    plot_confusion_matrix(cnf_matrix, classes=[ 'Negative tweets','Positive tweets'], normalize=False,
+                      title='Confusion matrix Naive Bayes')
+
+    plt.show()
+    
+    #nb_dict, m_dict, sgd_dict, b_dict = k_test(4, trainfeats)
+    #plot_graph2(nb_dict, m_dict,sgd_dict, b_dict)
+    
+    
     # split train en test set
     #train_proportion = float(7)/float(8)
     #trainfeats, testfeats = create_train_test(positiveTweets, negativeTweets, train_proportion)

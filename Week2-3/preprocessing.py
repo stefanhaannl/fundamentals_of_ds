@@ -190,7 +190,11 @@ def word_feats(words):
     #Create a dictionary
     return dict([(word, True) for word in words])
     
-def add_sentiment(df, trainfeats):
+def add_sentiment(df):
+	
+    train_pickle = pd.read_pickle('train.pkl')
+    trainfeats = train_pickle.tuples
+	
     # train model
     classifierNB = NaiveBayesClassifier.train(trainfeats)
     
@@ -221,8 +225,9 @@ def add_sentiment(df, trainfeats):
     return df
     
 if __name__ == "__main__":
-    df = load_dataframe(r'C:\Users\shaan\Documents\geotagged_tweets.jsons')
-    df_trump = load_trumptweets(r'data\trumptweets.csv')
+    df = load_dataframe('tweets_sample.jsons')
+    #df_trump = load_trumptweets(r'data\trumptweets.csv')
     df = preprocess_dataframe(df)
-    df_trump = preprocess_dataframe(df_trump)
-    
+    #df_trump = preprocess_dataframe(df_trump)
+    df = add_sentiment(df)
+    pp.pprint(df)
