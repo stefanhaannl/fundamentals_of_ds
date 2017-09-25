@@ -17,6 +17,7 @@ def clean_words(doc):
     result_list = []
     # Create a set of stopwords
     stop = set(stopwords.words('english'))
+    stop.add('amp')
     # This is the function makeing the lemmatization
     lemma = WordNetLemmatizer()
     for lst in doc:
@@ -56,11 +57,13 @@ def cluster_by_hashtags(df,n):
         result_df.append([hashtag, words])
     return pd.DataFrame(result_df,columns=['hashtag','words'])
 
-def testDoc_loadingpart(filepath,amountHashtags):
+def testDoc_loadingpart(filepath,amountHashtags = 0):
     # Load datafile
     print "Loading datafile..."
     df = load_tweets(filepath)
-    df = cluster_by_hashtags(df,amountHashtags)
+    if amountHashtags != 0:
+        print "Clustering hashtags..."
+        df = cluster_by_hashtags(df,amountHashtags)
     # Clean words
     print "Cleaning words..."
     doc_clean = clean_words(df['words'])
