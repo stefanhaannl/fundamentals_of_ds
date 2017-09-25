@@ -197,8 +197,6 @@ def add_sentiment(df):
     Program: Add sentiment as a column to dataframe
     Returns: dataframe with sentiment
     """
-    train_pickle = pd.read_pickle('train1mil.pkl')
-    trainfeats = train_pickle.tuples
     
     # train model
     classifierNB = load_classifier()
