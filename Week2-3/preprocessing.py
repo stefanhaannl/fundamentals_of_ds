@@ -5,6 +5,7 @@ import re
 import datetime
 import time
 import pprint as pp
+import cPickle
 from nltk import tokenize
 from nltk.classify import NaiveBayesClassifier
 
@@ -191,12 +192,16 @@ def word_feats(words):
     return dict([(word, True) for word in words])
     
 def add_sentiment(df):
-	
-    train_pickle = pd.read_pickle('train.pkl')
+    """
+    Input: dataframe preprocessed
+    Program: Add sentiment as a column to dataframe
+    Returns: dataframe with sentiment
+    """
+    train_pickle = pd.read_pickle('train1mil.pkl')
     trainfeats = train_pickle.tuples
-	
+    
     # train model
-    classifierNB = NaiveBayesClassifier.train(trainfeats)
+    classifierNB = load_classifier()
     
     # init sentiment predictions
     sentiment_predictions = []
@@ -207,6 +212,7 @@ def add_sentiment(df):
         
         # get tweet
         wordlist = df['words'].iloc[i]
+        #wordlist = ['I', 'hate', 'you' ]
         #wordlist = ['I', 'hate', 'you' ]
         
         # predict sentiment
@@ -224,10 +230,22 @@ def add_sentiment(df):
     
     return df
     
+def load_classifier():
+    """
+    Load classifier from pickle
+    """
+    with open('bnb_classifier1mil.pkl', 'rb') as fid:
+        classifier = cPickle.load(fid)
+        
+    return classifier
 if __name__ == "__main__":
     df = load_dataframe('tweets_sample.jsons')
+    
+    
+    
     #df_trump = load_trumptweets(r'data\trumptweets.csv')
     df = preprocess_dataframe(df)
     #df_trump = preprocess_dataframe(df_trump)
+    
     df = add_sentiment(df)
     pp.pprint(df)
