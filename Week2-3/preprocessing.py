@@ -243,7 +243,9 @@ if __name__ == "__main__":
       
     df_trump = load_trumptweets('data/trumptweets.csv')
     df_trump = add_sentiment(df_trump)
-    
+    df_trump.to_pickle('trump_df_sentiment.pkl')
+    print "Orange man dataframe done"
     df = load_pandas()
     df = add_sentiment(df)
-    
+    df.to_pickle('total_df_sentiment.pkl')
+
