@@ -1,0 +1,21 @@
+Beste model
+0 vote hillary 3 5 2
+1 0 0 10
+2 0 0 10
+3 0 0 10
+4 0 0 10
+5 clinton campaign 5,4,1
+6 wheather 6,2,2
+7 american voting 5,4,1
+8 never ever donald 3,6,1
+9 candidates 5,5,0
+10 online actions 6,4,0
+11 0 0 10
+12 trump campaign 5,5,0
+13 0 0 10
+14 wall mexico 7,2,1
+15 0 0 10
+16 hillary exit 6,2,2
+17 0 0 10
+18 Laura ingraham and greta 2 2 6
+19 online campaign 4,5,1
