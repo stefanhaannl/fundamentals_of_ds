@@ -170,7 +170,8 @@ def topicNewDoc(doc):
     Need to have dictionary and ldamodel globally defined
     """
     vec_bow = dictionary.doc2bow(doc)
-    return(ldamodel[vec_bow])
+    freq_list = ldamodel[vec_bow]
+    return [freq for freq in freq_list if freq[0] in topic_number]
 
 def calculate_topic_for_df(picklefilepath, n = 0, reverse = False):   
     """
@@ -190,6 +191,8 @@ def calculate_topic_for_df(picklefilepath, n = 0, reverse = False):
     ldamodel = models.LdaModel.load(r"ldamodel/ldamodel.model")
     global dictionary
     dictionary = corpora.Dictionary.load(r"ldamodel/ldadict")
+    global topic_number
+    topic_number = [0,5,6,7,8,9,10,12,14,16,18,19]
     print "Applying the model..."
     df['topic_v'] = df['words'].apply(topicNewDoc)
     return df
