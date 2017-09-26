@@ -18,6 +18,9 @@ def clean_words(doc):
     # Create a set of stopwords
     stop = set(stopwords.words('english'))
     stop.add('amp')
+    stop.add('u')
+    stop.add('2')
+    stop.add('4')
     # This is the function makeing the lemmatization
     lemma = WordNetLemmatizer()
     for lst in doc:
@@ -91,7 +94,7 @@ def testDoc_testingpart(doc_clean, doc_n = 1000, topic_n = 5, iter_n = 100):
     
     printTopics(ldamodel,10,10)
     
-    return ldamodel
+    return dictionary, ldamodel
 
 def testDoc_parameters(filepath, hashtag_n, topic_n, iter_n, outputfile):
     """
@@ -129,8 +132,15 @@ def printTopics(ldamodel, maxNumberofTopics, wordsPerTopic):
         print "Topic",i ,"->", topic
         i+=1
 
-def topicNewDoc(ldamodel, doc):
-    vec_bow = dictionary.doc2bow(doc.lower().split())
+def topicNewDoc(doc):
+    """
+    Need to have dictionary and ldamodel globally defined
+    """
+    vec_bow = dictionary.doc2bow(doc)
     return(ldamodel[vec_bow])
 
-
+def add_topic_df(picklefilepath, ldamodel, n = 0):
+    df = pd.read_pickle(picklefilepath)
+    if n == 0:
+        n = len(df)
+    df['topic_v'] = df['words'].apply(topicNewDoc)
