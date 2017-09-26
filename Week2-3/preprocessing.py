@@ -166,7 +166,7 @@ def load_pandas():
     Reads a .pkl file for a dataframe format. Specifiy the path in the function.
     OUTPUT: Pandas Dataframe
     """
-    pandasfilepath = r'C:\Users\shaan\Documents\true_tweets.pkl'
+    pandasfilepath = r'true_tweets.pkl'
     return pd.read_pickle(pandasfilepath)
     
 
@@ -185,6 +185,8 @@ def load_trumptweets(path):
     print "Loading the trump csv file..."
     df = pd.read_csv(path, usecols = ['text','created_at','retweet_count','favorite_count','is_retweet'])
     print "Trump file loaded! Relevant information extracted!"
+    df= preprocess_dataframe(df)
+    print "Trump dataframe preprocessed succeded!"
     return df
 
 def word_feats(words): 
@@ -237,13 +239,13 @@ def load_classifier():
         
     return classifier
 if __name__ == "__main__":
-    df = load_dataframe('tweets_sample.jsons')
     
-    
-    
-    #df_trump = load_trumptweets(r'data\trumptweets.csv')
-    df = preprocess_dataframe(df)
-    #df_trump = preprocess_dataframe(df_trump)
-    
+      
+    df_trump = load_trumptweets('data/trumptweets.csv')
+    df_trump = add_sentiment(df_trump)
+    df_trump.to_pickle('trump_df_sentiment.pkl')
+    print "Orange man dataframe done"
+    df = load_pandas()
     df = add_sentiment(df)
-    pp.pprint(df)
+    df.to_pickle('total_df_sentiment.pkl')
+
