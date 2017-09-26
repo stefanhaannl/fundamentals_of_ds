@@ -172,8 +172,24 @@ def topicNewDoc(doc):
     vec_bow = dictionary.doc2bow(doc)
     return(ldamodel[vec_bow])
 
-def add_topic_df(picklefilepath, ldamodel, n = 0):
+def calculate_topic_for_df(picklefilepath, n = 0, reverse = False):   
+    """
+    Add a topic_vector from a tweet for a whole dataframe. Do not forget to assign to a variable since the function returns your new dataframe
+    INPUT: picklefilepath: str, path to your pickle file
+    INPUT: n = 0: int, numer of rows you want apply it on (n = 0 means all)
+    INPUT: reverse: bool, set True if you want to start at the end
+    """
+    print "Loading the pickle file..."
     df = pd.read_pickle(picklefilepath)
-    if n == 0:
-        n = len(df)
+    if reverse == True:
+        df.reindex(index=df.index[::-1])
+    if n != 0:
+        df = df.head(n)
+    print "Loading the lda model..."
+    global ldamodel
+    ldamodel = models.LdaModel.load(r"ldamodel/ldamodel.model")
+    global dictionary
+    dictionary = corpora.Dictionary.load(r"ldamodel/ldadict")
+    print "Applying the model..."
     df['topic_v'] = df['words'].apply(topicNewDoc)
+    return df
