@@ -97,7 +97,6 @@ def plot_twifluence(df_tweetjes, df_trump, topic, plot_hour, input_time, einde_d
     
     # Create new timeline to plot against (because of interpolation)
     
-    # waarom [0][1]
     begintime = matplotlib.dates.date2num(interval.datetime.iloc[0])
     endtime = matplotlib.dates.date2num(interval.datetime.iloc[-1])
     numdates = np.linspace(begintime, endtime, num = (len(interval.counts)*10), endpoint = True)
@@ -106,7 +105,7 @@ def plot_twifluence(df_tweetjes, df_trump, topic, plot_hour, input_time, einde_d
     
     # Plot figure
     plt.plot(interp_dates,power_smooth, 'r-')
-#    plt.xticks(interp_dates)
+    #    plt.xticks(interp_dates)
     for k in df_trump.datetime.index:
         trump_date_number = matplotlib.dates.date2num(df_trump.datetime[k])
         min_diff = min(abs(i - trump_date_number) for i in numdates)
@@ -119,38 +118,49 @@ def plot_twifluence(df_tweetjes, df_trump, topic, plot_hour, input_time, einde_d
         else:
             hoogte = power_smooth[minus[0]]
         
-        plt.plot([df_trump.datetime[k],df_trump.datetime[k]],[power_smooth.min(), hoogte+(hoogte/5)], 'k-')
-
+        plt.plot([df_trump.datetime[k],df_trump.datetime[k]],[0, hoogte], 'k-')
+        
+    
+    plt.xlabel('Date')
+    if plot_senti == 1:
+        plt.axis((begintime,endtime,0.3,0.7))
+        plt.ylabel('Sentiment on twitter')
+        plt.title('Sentiment on Twitter over time')
+    else:
+        plt.ylabel('Amount of tweets')
+        plt.title('Amount of tweets over time')
     plt.show()
     
     return interval
 
-def plot_results()
-	# Load all tweet data
-	#    filepath = r'C:\Users\daniel\Downloads\true_tweets.pkl'
-	#    df_tweetjes = load_pandas(filepath)
+def plot_results(topic, interval_length, sentiment_bool ):
+    # Load all tweet data
+    #    filepath = r'C:\Users\daniel\Downloads\true_tweets.pkl'
+    #    df_tweetjes = load_pandas(filepath)
     
     # load trump tweet data
-    filepath = r'trump_df_sentiment.pkl'
+    filepath = r'total_df_sentiment1.pkl'
+    filepath_trump = r'trump_df_sentiment.pkl'
     df_tweetjes = load_pandas(filepath)
-    df_trump = df_tweetjes[0:100]
+    df_trump = load_pandas(filepath_trump)
 
     
-    # select data of interest and determine bin length (in hour)
-    topic = 'healthcare'                # topic
-    plot_hour = 25               # Plotting Interval length
-    
-    # Statistical parameters
-    stat_hour = 48                      # Hours minus and plus trump time (to compare the two intervals)
-    
-    # Plotting parameters
+    # Get right dataframe
     input_time = df_tweetjes.datetime.min()                # Starting time
     einde_der_tijden = df_tweetjes.datetime.max()     # End time
-    plot_senti = 0                                    # Plot sentiment or count
-                                                            # 1 = true, 0 = false
     
-    plot_twifluence(df_tweetjes, df_trump, topic, plot_hour, input_time, einde_der_tijden, plot_senti)
+    # adjust trumps timeframe to original timeframe
+    mask = (df_trump.datetime >= input_time) & (df_trump.datetime <= einde_der_tijden )
+    df_trump = df_trump.loc[mask]
+    
+    plot_twifluence(df_tweetjes, df_trump, topic, interval_length, input_time, einde_der_tijden, sentiment_bool)
     
 
 if __name__ == "__main__":
-	plot_results()
+    
+    # select data of interest and determine bin length (in hour)
+    topic = 'healthcare'               # topic
+    interval_length = 8               # Interval length (sentiment 4, count)
+    sentiment_bool = 1               # Plot sentiment(1) or count(0)
+    
+    plot_results(topic, interval_length, sentiment_bool)
