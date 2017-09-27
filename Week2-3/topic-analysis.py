@@ -169,6 +169,7 @@ def topicNewDoc(doc):
     """
     Need to have dictionary and ldamodel globally defined
     """
+    doc = [unicode(item, errors='ignore') for item in doc]
     vec_bow = dictionary.doc2bow(doc)
     freq_list = ldamodel[vec_bow]
     return [freq for freq in freq_list if freq[0] in topic_number]
@@ -196,3 +197,19 @@ def calculate_topic_for_df(picklefilepath, n = 0, reverse = False):
     print "Applying the model..."
     df['topic_v'] = df['words'].apply(topicNewDoc)
     return df
+
+def topicvector_to_topic(vector):
+    if vector != []:
+        chances = [b for (a,b) in vector]
+        ind = chances.index(max(chances))
+        topic_n = vector[ind][0]
+        return transdict[topic_n]
+    else:
+        return "None"
+
+def get_most_likely_topic(df):
+    global transdict
+    transdict = {0:"Vote Hillary",5:"Clinton campaign",6:"Weather",7:"American voting",8:"Never ever Donald",9:"Candidates",10:"Online Actions",12:"Trump campaign",14:"Wall Mexico",16:"Hillary exit",18:"Laura Ingraham and Greta",19:"Online campaign"}
+    df['topic'] = df['topic_v'].apply(topicvector_to_topic)
+    return df
+        
