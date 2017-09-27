@@ -17,7 +17,8 @@ from matplotlib.colors import rgb2hex
 from descartes import PolygonPatch
 from shapely.geometry import Polygon, MultiPolygon
 from shapely.geometry import Point
-from scipy.stats import t
+
+import scipy.stats
 # In[0]:
 def load_pandas(filepath):
     """
@@ -176,13 +177,13 @@ def stat_interval(tweetjes_time, trump_time, stat_hour):
         mask_before = (tweetjes_time.datetime >= interval_left) & (tweetjes_time.datetime < trump_tweettime)
         tweets_before = tweetjes_time.loc[mask_before]
         before_counts.append(len(tweets_before))
-        before_sentiment.append(tweets_before.mean())
+        before_sentiment.append(tweets_before.sentiment.mean())
         
         # Calculate amount and sentiment of tweets after trump tweet
         mask_after = (tweetjes_time.datetime <= interval_right) & (tweetjes_time.datetime > trump_tweettime)
         tweets_after = tweetjes_time.loc[mask_after]
         after_counts.append(len(tweets_after))
-        after_sentiment.append(tweets_after.mean())
+        after_sentiment.append(tweets_after.sentiment.mean())
         
     stat_tweets = pd.DataFrame({'b_counts' : before_counts, 'b_sentiment' : before_sentiment,
                                'a_counts' : after_counts, 'a_sentiment' : after_sentiment})
@@ -197,10 +198,14 @@ def stat_analysis(df_tweetjes, df_trump, topic, stat_hour):
     tweetjes_time, trump_time = data_select(df_tweetjes, df_trump, topic)
     
     stat_tweets = stat_interval(tweetjes_time, trump_time, stat_hour)
+
+    A_senticount = stat_tweets.a_sentiment*stat_tweets.a_counts
+    A_reverse = stat_tweets.a_counts - A_senticount
+    B_senticount = stat_tweets.b_sentiment*stat_tweets.b_counts
+    B_reverse = stat_tweets.b_counts - B_senticount     
+    T = []
     
-#    T =
-#    
-#    for i in len(stat_tweets):
+    for i in range(0,len(stat_tweets)):
 #         Calculate T statistic for every proportion test over the samples of
 #         before and after Trump's tweet. The h0 hypothesis is dependent on the
 #         sentiment of Trump's tweet. Because we expect that the tweets take
@@ -213,6 +218,10 @@ def stat_analysis(df_tweetjes, df_trump, topic, stat_hour):
         # Klopt dat dan ook? we weten niet of positieve tweet positief invloed
         # heeft op tweets. In dat geval h0 = pAfter - pBefore = 0.
     
+#        T.append(scipy.stats.chi2_contingency(np.array([[38, 100-38], [51, 200-51]])))
+        
+        p = scipy.stats.chi2_contingency(np.array([[B_senticount.iloc[i], B_reverse.iloc[i]], [A_senticount.iloc[i], A_reverse.iloc[i]]]))
+        T.append(p[1])
 #        d
         
         # voor later
@@ -224,10 +233,10 @@ def stat_analysis(df_tweetjes, df_trump, topic, stat_hour):
     # Run statistical analysis with retrieved data
     # We have the point estimates (mean sentiment) before and after. Thus, 
     # we can run a test of same proportion on data.
-    print stat_tweets
+#    print stat_tweets
 #    T = (stat_tweets.before_sentiment - stat_tweets.after_sentiment) / 
     
-#    return a
+    return T
 
 #############################################################################
 #---------------------------------------------------------------------------#
@@ -255,10 +264,10 @@ if __name__ == "__main__":
     
     # select data of interest and determine bin length (in hour)
     topic = 'healthcare'                # topic
-    plot_hour = 0.1                          # Plotting Interval length
+    plot_hour = 1                      # Plotting Interval length
     
     # Statistical parameters
-    stat_hour = 24                      # Hours minus and plus trump time (to compare the two intervals)
+    stat_hour = 48                      # Hours minus and plus trump time (to compare the two intervals)
     
     # Plotting parameters
     input_time = df_tweetjes.datetime.min()                 # Starting time
@@ -270,7 +279,7 @@ if __name__ == "__main__":
     plot_twifluence(df_tweetjes, df_trump, topic, plot_hour, input_time, einde_der_tijden, plot_senti)
     
     # Run statistical analysis
-    stat_analysis(df_tweetjes, df_trump, topic, stat_hour)
+    T = stat_analysis(df_tweetjes, df_trump, topic, stat_hour)
     
     
     
