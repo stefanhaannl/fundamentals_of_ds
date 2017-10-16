@@ -19,7 +19,34 @@ def load_data(path):
 #    path = 'data/image_data.pkl'
     return pd.read_pickle(path)
 
-    #return  df#1,df2,df3,df4,df5,df6
+# In[anp]
+
+def anp():
+
+# In[anp]
+
+def face():
+
+# In[anp]
+
+def image_data():
+
+# In[anp]
+
+def image_metrics(): 
+    
+    # In[anp]
+
+def survey():
+    
+    # In[anp]
+
+def object_labels():
+    
+    # In[anp]
+
+def samenvoegen():
+
 # In[]
 
 paths = ['data/anp.pkl','data/face.pkl','data/image_data.pkl',
