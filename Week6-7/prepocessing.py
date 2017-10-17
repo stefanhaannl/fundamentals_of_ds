@@ -49,9 +49,22 @@ def survey(path, init_df):
     
 # In[object_labels]
 
-def object_labels(path, init_df):
-
-    return object_labels_df
+def object_labels(path, df, threshold = 0.0, amountFeaturesToAdd = 20):
+    ### adds an amount of boolean features which indicate whether an object is in the photo
+    ### INPUT: the current DF with all pictures as a row, the path to the DF with the object per photo, potentially 
+    ### a threshold for when to include objects, and the amount of boolean features added
+    ### OUTPUT: the input dataframe, but with information of which object are in the photo
+    object_labels_df = pd.read_pickle(path)
+    features = object_labels_df["data_amz_label"].value_counts().keys()[:amountFeaturesToAdd]
+    for feature in features:
+        indexes = object_labels_df.index[(object_labels_df["data_amz_label"] == feature) & 
+                                         (object_labels_df["data_amz_label_confidence"] > threshold)].tolist()
+        subset = object_labels_df.loc[indexes]["image_id"].tolist()
+        newFeature = [0] * df.shape[0]
+        for user in df.index[df['image_id'].isin(subset)].tolist():
+            newFeature[user-1] +=1
+        df[feature] = newFeature    
+    return df
     
 # In[main]
 if __name__ == "__main__": 
