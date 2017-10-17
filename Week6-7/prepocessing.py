@@ -2,7 +2,7 @@
 Daniel is een baas, Amor is een bitch
 """
 
-import numpy
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import pprint as pp
@@ -13,6 +13,7 @@ def init(path):
     image_df = pd.read_pickle(path)
     user_id =  image_df['user_id'].astype(str)
     df_init = pd.DataFrame({'image_id': image_df['image_id'], 'user_id':user_id })
+    
     return df_init
 
 # In[anp]
@@ -20,7 +21,42 @@ def init(path):
 def anp(path, init_df):
     anp = pd.read_pickle(path)
 
-    return anp_df
+    init_df['anp_sen'] = np.nan
+    init_df['acceptance'] = np.nan
+    init_df['admiration'] = np.nan
+    init_df['amazement'] = np.nan
+    init_df['anger'] = np.nan
+    init_df['annoyance'] = np.nan
+    init_df['anticipation'] = np.nan
+    init_df['apprehension'] =np.nan
+    init_df['boredom'] = np.nan
+    init_df['disgust'] = np.nan
+    init_df['distraction'] = np.nan
+    init_df['ecstasy'] = np.nan
+    init_df['fear'] = np.nan
+    init_df['grief'] = np.nan
+    init_df['interest'] = np.nan
+    init_df['joy'] = np.nan
+    init_df['loathing'] = np.nan
+    init_df['pensiveness'] = np.nan
+    init_df['rage'] = np.nan
+    init_df['sadness'] = np.nan
+    init_df['serenity'] = np.nan
+    init_df['surprise'] = np.nan
+    init_df['terror'] = np.nan
+    init_df['trust'] = np.nan
+    init_df['vigilance'] = np.nan
+    
+    i = 0
+    for i in range(0,len(init_df.image_id)):
+        print float(i)/float(len(init_df.image_id))
+#        anp.emotion_score.groupby(['emotion_label']).mean()
+        emo_score = anp[anp.image_id == init_df.image_id.loc[i]].groupby(['emotion_label']).emotion_score.mean()
+        for a in range(0,len(emo_score)):
+            init_df.iloc[i,init_df.columns == emo_score.index[a]] = emo_score[a]
+        init_df.anp_sen[i] = anp[anp.image_id == init_df.image_id.loc[i]].anp_sentiment.mean()
+        
+    return init_df
     
 # In[face]
 
