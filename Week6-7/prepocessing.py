@@ -86,9 +86,9 @@ def image_data(path, init_df):
     
 # In[image_metrics]
 def image_data_Axel(path, df):
-    ### adds the amount of likes and comments per photo, at the last moment measured
-    ### INPUT: the current DF with all pictures as a row, the path to the df with likes and comments per photo 
-    ### OUTPUT: the input dataframe, but with information of the likes and comments per photo
+    ### adds a lot of metadata of the profiles and photos
+    ### INPUT: the current DF with all pictures as a row, the path to the df with meta per photo 
+    ### OUTPUT: the input dataframe, but with information of the metadata
     image_data_df = pd.read_pickle(path)
     df["image_height"] = image_data_df["image_height"]
     df["image_link"] = image_data_df["image_link"]
