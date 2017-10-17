@@ -79,14 +79,15 @@ def merge_to_face(x):
 # In[image_data]
 
 def image_data(path, init_df):
-    
+    likespath = 'data/likes_comments_features.pkl'
+    image_data_df = pd.read_pickle(likespath)
+    pp.pprint(image_data_df)
     return image_data_df
     
 # In[image_metrics]
 
-def image_metrics(path, init_df): 
-    
-    return image_metrics_df
+def image_metrics(path, df):
+    return df
     
 # In[survey]
 
@@ -97,9 +98,22 @@ def survey(path, init_df):
     
 # In[object_labels]
 
-def object_labels(path, init_df):
-
-    return object_labels_df
+def object_labels(path, df, threshold = 0.0, amountFeaturesToAdd = 20):
+    ### adds an amount of boolean features which indicate whether an object is in the photo
+    ### INPUT: the current DF with all pictures as a row, the path to the DF with the object per photo, potentially 
+    ### a threshold for when to include objects, and the amount of boolean features added
+    ### OUTPUT: the input dataframe, but with information of which object are in the photo
+    object_labels_df = pd.read_pickle(path)
+    features = object_labels_df["data_amz_label"].value_counts().keys()[:amountFeaturesToAdd]
+    for feature in features:
+        indexes = object_labels_df.index[(object_labels_df["data_amz_label"] == feature) & 
+                                         (object_labels_df["data_amz_label_confidence"] > threshold)].tolist()
+        subset = object_labels_df.loc[indexes]["image_id"].tolist()
+        newFeature = [0] * df.shape[0]
+        for user in df.index[df['image_id'].isin(subset)].tolist():
+            newFeature[user-1] +=1
+        df[feature] = newFeature    
+    return df
     
 # In[main]
 if __name__ == "__main__": 
@@ -111,18 +125,14 @@ if __name__ == "__main__":
     
     # Load al the data
     #anp_df = anp(paths[0], init_df)
-    face_df = face(paths[1], init_df)
+    #face_df = face(paths[1], init_df)
     #image_data_df = image_data(paths[2], init_df)
+    #face_df = face(paths[1], init_df)
+    image_data_df = image_data(paths[2], init_df)
     #image_metrics_df = image_metrics(paths[3], init_df)
-    survey_df = survey(paths[4], init_df)
-    print(type(survey_df.P.iloc[0]))
-    print(type(survey_df.E.iloc[0]))
-    print(type(survey_df.R.iloc[0]))
-    print(type(survey_df.M.iloc[0]))
-    print(type(survey_df.A.iloc[0]))
-    print(type(survey_df.PERMA.iloc[0]))
-    
+    #survey_df = survey(paths[4], init_df)
     #object_labels_df = object_labels(paths[5], init_df)
+    
     
     
 
