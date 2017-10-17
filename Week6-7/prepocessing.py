@@ -31,25 +31,14 @@ def face(path, init_df):
 # In[image_data]
 
 def image_data(path, init_df):
-    
+    likespath = 'data/likes_comments_features.pkl'
+    image_data_df = pd.read_pickle(likespath)
+    pp.pprint(image_data_df)
     return image_data_df
     
 # In[image_metrics]
 
 def image_metrics(path, df):
-    ### adds the amount of likes and comments per photo, at the last moment measured
-    ### INPUT: the current DF with all pictures as a row, the path to the df with likes and comments per photo 
-    ### OUTPUT: the input dataframe, but with information of the likes and comments per photo
-    metrics_df = pd.read_pickle(path)
-    comments = [0] * df.shape[0]
-    likes = [0] * df.shape[0]
-    metrics_df.sort_values(by=["image_id", "comment_count_time_created", "like_count_time_created"])
-    for user, i in zip(df['image_id'].tolist()[:10], range(len(df['image_id'].tolist()))):
-        a = metrics_df[(metrics_df["image_id"] == user)]
-        comments[i] = a.iloc[0]["comment_count"]
-        likes[i] = a.iloc[0]["like_count"]
-    df["comments"] = comments
-    df["likes"] = likes
     return df
     
 # In[survey]
@@ -89,17 +78,11 @@ if __name__ == "__main__":
     # Load al the data
     #anp_df = anp(paths[0], init_df)
     #face_df = face(paths[1], init_df)
-    #image_data_df = image_data(paths[2], init_df)
+    image_data_df = image_data(paths[2], init_df)
     #image_metrics_df = image_metrics(paths[3], init_df)
-    survey_df = survey(paths[4], init_df)
-    print(type(survey_df.P.iloc[0]))
-    print(type(survey_df.E.iloc[0]))
-    print(type(survey_df.R.iloc[0]))
-    print(type(survey_df.M.iloc[0]))
-    print(type(survey_df.A.iloc[0]))
-    print(type(survey_df.PERMA.iloc[0]))
-    
+    #survey_df = survey(paths[4], init_df)
     #object_labels_df = object_labels(paths[5], init_df)
+    
     
     
 
