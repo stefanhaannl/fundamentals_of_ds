@@ -52,15 +52,18 @@ def face(path, init_df):
     for col in new_cols:
         init_df[col] = numpy.nan
     print "Editing the image data and returning the initial df with added features..."
-    for image in list(image_facedata.index.levels[0]):
-        init_df.loc[image,new_cols] = image_facedata[image]     
+    for image in list(image_facedata.index):
+        init_df.loc[image,new_cols] = image_facedata.loc[image]     
     return init_df
 
 def merge_to_image(x):
     ret = {}
     ret['n_people'] = len(x['face_gender'])
-    if 'Male' in list(x['face_gender'].value_counts().index):
-        ret['male_percentage'] = x['face_gender'].value_counts().loc['Male']/len(x['face_gender'])
+    a=0
+    for gender in list(x['face_gender']):
+        if gender == 'Male':
+            a+=1
+    ret['male_percentage'] = float(a)/len(x['face_gender'])
     ret['age'] = (x['face_age_range_low']+(x['face_age_range_high']-x['face_age_range_low'])/2).mean()
     ret['sunglasses'] = x['face_sunglasses'].sum()
     ret['beards'] = x['face_beard'].sum()
@@ -144,7 +147,9 @@ def merge_data(face_df, image_data_df, image_metrics_df, survey_df, object_label
     frame2 = pd.merge(frame1, survey_df, how='inner', on='image_id')
     frame3 = pd.merge(frame2, object_labels_df, how='inner', on='image_id')
     frame4  = pd.merge(frame3, face_df, how='inner', on='image_id')
-    
+    del frame4['user_id_x']
+    frame4['user_id'] = frame4['user_id_y']
+    del frame4['user_id_y']
     return frame4
     
 def image_pickle(path):
@@ -156,23 +161,27 @@ if __name__ == "__main__":
     paths = ['data/anp.pkl','data/face.pkl','data/image_data.pkl',
          'data/image_metrics.pkl','data/survey.pkl','data/object_labels.pkl']
 
+
+    
     # Load al the data
-    """
+    
     init_df = init(paths[2])
-    face_df = face_features(paths[1], init_df)
-    image_data_df = image_data(paths[2], init_df)
-    image_metrics_df = image_data_Axel(paths[2], init_df)
-    survey_df = survey(paths[4], init_df)
-    object_labels_df = object_labels(paths[5], init_df)
-    """
+    
+    face_df = face('pickles/face.pkl',init_df.copy())
+    face_df.reset_index(inplace=True) 
+    
+    image_data_df = image_data(paths[3], init_df.copy())
+    image_metrics_df = image_data_Axel(paths[2], init_df.copy())
+    survey_df = survey(paths[4], init_df.copy())
+    object_labels_df = object_labels(paths[5], init_df.copy())
+   
     
     # merge dataframes
-    """
+    
     result_per_image = merge_data(face_df, image_data_df, image_metrics_df, survey_df, object_labels_df)
     result_per_image.to_pickle('data/result_image.pkl')
-    """
-    df_merged = image_pickle('data/result_image.pkl')
-    pp.pprint(df_merged)
+    
+    #df_merged = image_pickle('data/result_image.pkl')
     
 
     
