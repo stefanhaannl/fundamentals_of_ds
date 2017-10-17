@@ -24,6 +24,12 @@ def anp(path, init_df):
     
 # In[face]
 
+def face_features(path, init_df):
+    facepath = 'data/face_features.pkl'
+    face = pd.read_pickle(facepath)
+
+    return face
+    
 def face(path, init_df):
     face = pd.read_pickle(path)
     print "Merging the different faces emotions into one face per person per picture..."
@@ -81,7 +87,6 @@ def merge_to_face(x):
 def image_data(path, init_df):
     likespath = 'data/likes_comments_features.pkl'
     image_data_df = pd.read_pickle(likespath)
-    pp.pprint(image_data_df)
     return image_data_df
     
 # In[image_metrics]
@@ -142,15 +147,13 @@ if __name__ == "__main__":
     
     # Load al the data
     #anp_df = anp(paths[0], init_df)
-    #face_df = face(paths[1], init_df)
-    #image_data_df = image_data(paths[2], init_df)
-    #face_df = face(paths[1], init_df)
+    face_df = face_features(paths[1], init_df)
     image_data_df = image_data(paths[2], init_df)
-    #image_metrics_df = image_metrics(paths[3], init_df)
-    #survey_df = survey(paths[4], init_df)
-    #object_labels_df = object_labels(paths[5], init_df)
+    image_metrics_df = image_data_Axel(paths[2], init_df)
+    survey_df = survey(paths[4], init_df)
+    object_labels_df = object_labels(paths[5], init_df)
     
-    
+
     
 
     
