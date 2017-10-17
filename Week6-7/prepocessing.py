@@ -36,9 +36,21 @@ def image_data(path, init_df):
     
 # In[image_metrics]
 
-def image_metrics(path, init_df): 
-    
-    return image_metrics_df
+def image_metrics(path, df):
+    ### adds the amount of likes and comments per photo, at the last moment measured
+    ### INPUT: the current DF with all pictures as a row, the path to the df with likes and comments per photo 
+    ### OUTPUT: the input dataframe, but with information of the likes and comments per photo
+    metrics_df = pd.read_pickle(path)
+    comments = [0] * df.shape[0]
+    likes = [0] * df.shape[0]
+    metrics_df.sort_values(by=["image_id", "comment_count_time_created", "like_count_time_created"])
+    for user, i in zip(df['image_id'].tolist()[:10], range(len(df['image_id'].tolist()))):
+        a = metrics_df[(metrics_df["image_id"] == user)]
+        comments[i] = a.iloc[0]["comment_count"]
+        likes[i] = a.iloc[0]["like_count"]
+    df["comments"] = comments
+    df["likes"] = likes
+    return df
     
 # In[survey]
 
