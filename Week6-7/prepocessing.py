@@ -27,6 +27,7 @@ def anp(path, init_df):
 def face_features(path, init_df):
     facepath = 'data/face_features.pkl'
     face = pd.read_pickle(facepath)
+    face.reset_index(inplace=True)  
 
     return face
     
@@ -137,23 +138,41 @@ def object_labels(path, df, threshold = 0.0, amountFeaturesToAdd = 20):
         df[feature] = newFeature    
     return df
     
+def merge_data(face_df, image_data_df, image_metrics_df, survey_df, object_labels_df):
+    # merge all the data 
+    frame1 = pd.merge(image_metrics_df, image_data_df, how='inner', on='image_id')
+    frame2 = pd.merge(frame1, survey_df, how='inner', on='image_id')
+    frame3 = pd.merge(frame2, object_labels_df, how='inner', on='image_id')
+    frame4  = pd.merge(frame3, face_df, how='inner', on='image_id')
+    
+    return frame4
+    
+def image_pickle(path):
+    df = pd.read_pickle(path)
+    return df
 # In[main]
 if __name__ == "__main__": 
     
     paths = ['data/anp.pkl','data/face.pkl','data/image_data.pkl',
          'data/image_metrics.pkl','data/survey.pkl','data/object_labels.pkl']
 
-    init_df = init(paths[2])
-    
     # Load al the data
-    #anp_df = anp(paths[0], init_df)
+    """
+    init_df = init(paths[2])
     face_df = face_features(paths[1], init_df)
     image_data_df = image_data(paths[2], init_df)
     image_metrics_df = image_data_Axel(paths[2], init_df)
     survey_df = survey(paths[4], init_df)
     object_labels_df = object_labels(paths[5], init_df)
+    """
     
-
+    # merge dataframes
+    """
+    result_per_image = merge_data(face_df, image_data_df, image_metrics_df, survey_df, object_labels_df)
+    result_per_image.to_pickle('data/result_image.pkl')
+    """
+    df_merged = image_pickle('data/result_image.pkl')
+    pp.pprint(df_merged)
     
 
     
