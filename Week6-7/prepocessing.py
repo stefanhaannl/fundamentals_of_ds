@@ -37,8 +37,25 @@ def image_data(path, init_df):
     return image_data_df
     
 # In[image_metrics]
-
-def image_metrics(path, df):
+def image_data_Axel(path, df):
+    ### adds the amount of likes and comments per photo, at the last moment measured
+    ### INPUT: the current DF with all pictures as a row, the path to the df with likes and comments per photo 
+    ### OUTPUT: the input dataframe, but with information of the likes and comments per photo
+    image_data_df = pd.read_pickle(path)
+    df["image_height"] = image_data_df["image_height"]
+    df["image_link"] = image_data_df["image_link"]
+    df["image_width"] = image_data_df["image_width"]
+    df["data_memorability"] = image_data_df["data_memorability"]
+    df["user_followed_by"] = image_data_df["user_followed_by"]
+    df["user_follows"] = image_data_df["user_follows"]
+    df["user_posted_photos"] = image_data_df["user_posted_photos"]
+    indexes = image_data_df.index[(image_data_df["image_filter"] != "Normal")].tolist()
+    subset = image_data_df.loc[indexes]["image_id"].tolist()
+    newFeature = [0] * df.shape[0]
+    #print(df.index[df['image_id'].isin(subset)].tolist())
+    for image in df.index[df['image_id'].isin(subset)].tolist():
+        newFeature[image ] +=1
+    df["special_filter"] = newFeature
     return df
     
 # In[survey]
@@ -63,7 +80,7 @@ def object_labels(path, df, threshold = 0.0, amountFeaturesToAdd = 20):
         subset = object_labels_df.loc[indexes]["image_id"].tolist()
         newFeature = [0] * df.shape[0]
         for user in df.index[df['image_id'].isin(subset)].tolist():
-            newFeature[user-1] +=1
+            newFeature[user] +=1
         df[feature] = newFeature    
     return df
     
