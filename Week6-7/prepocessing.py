@@ -43,7 +43,8 @@ def image_metrics(path, init_df):
 # In[survey]
 
 def survey(path, init_df):
-    
+    perma_path = 'data/perma_features.pkl'
+    survey_df = pd.read_pickle(perma_path)
     return survey_df
     
 # In[object_labels]
@@ -61,12 +62,19 @@ if __name__ == "__main__":
     init_df = init(paths[2])
     
     # Load al the data
-    anp_df = anp(paths[0], init_df)
-    face_df = face(paths[1], init_df)
-    image_data_df = image_data(paths[2], init_df)
-    image_metrics_df = image_metrics(paths[3], init_df)
+    #anp_df = anp(paths[0], init_df)
+    #face_df = face(paths[1], init_df)
+    #image_data_df = image_data(paths[2], init_df)
+    #image_metrics_df = image_metrics(paths[3], init_df)
     survey_df = survey(paths[4], init_df)
-    object_labels_df = object_labels(paths[5], init_df)
+    print(type(survey_df.P.iloc[0]))
+    print(type(survey_df.E.iloc[0]))
+    print(type(survey_df.R.iloc[0]))
+    print(type(survey_df.M.iloc[0]))
+    print(type(survey_df.A.iloc[0]))
+    print(type(survey_df.PERMA.iloc[0]))
+    
+    #object_labels_df = object_labels(paths[5], init_df)
     
     
 
