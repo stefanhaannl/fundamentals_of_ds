@@ -2,7 +2,7 @@
 Daniel is een baas, Amor is een bitch
 """
 
-import numpy
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import pprint as pp
@@ -13,6 +13,7 @@ def init(path):
     image_df = pd.read_pickle(path)
     user_id =  image_df['user_id'].astype(str)
     df_init = pd.DataFrame({'image_id': image_df['image_id'], 'user_id':user_id })
+    
     return df_init
 
 # In[anp]
@@ -20,7 +21,59 @@ def init(path):
 def anp(path, init_df):
     anp = pd.read_pickle(path)
 
-    return anp_df
+userimage = []
+
+for i in anp.image_id:
+    userimage.append(str(i).split('_')[1])
+    
+anp['user_id'] = userimage
+
+# Create new dataframe, fill all emotions with NaN, then retrieve average
+# emotion score per emotion per user.
+uniq_users = init_df.user_id.drop_duplicates()
+uniq_users = uniq_users.reset_index().user_id
+users_df = pd.DataFrame()
+users_df['user_id'] = uniq_users
+users_df['anp_sen'] = np.nan
+users_df['acceptance'] = np.nan
+users_df['admiration'] = np.nan
+users_df['amazement'] = np.nan
+users_df['anger'] = np.nan
+users_df['annoyance'] = np.nan
+users_df['anticipation'] = np.nan
+users_df['apprehension'] =np.nan
+users_df['boredom'] = np.nan
+users_df['disgust'] = np.nan
+users_df['distraction'] = np.nan
+users_df['ecstasy'] = np.nan
+users_df['fear'] = np.nan
+users_df['grief'] = np.nan
+users_df['interest'] = np.nan
+users_df['joy'] = np.nan
+users_df['loathing'] = np.nan
+users_df['pensiveness'] = np.nan
+users_df['rage'] = np.nan
+users_df['sadness'] = np.nan
+users_df['serenity'] = np.nan
+users_df['surprise'] = np.nan
+users_df['terror'] = np.nan
+users_df['trust'] = np.nan
+users_df['vigilance'] = np.nan
+    
+    
+# Nu per user emotionscore bepalen
+for i in range(0,len(users_df)):
+            print float(i)/float(len(users_df))
+            userid = users_df.user_id[i]
+    #        anp.emotion_score.groupby(['emotion_label']).mean()
+            emo_score = anp[anp.user_id == userid].groupby(['emotion_label']).emotion_score.mean()
+            for a in range(0,len(emo_score)):
+                users_df.iloc[i,users_df.columns == emo_score.index[a]] = emo_score[a]
+            
+            users_df.anp_sen[i] = anp[anp.user_id == userid].anp_sentiment.mean()
+
+anp_users = users_df
+anp_users.to_pickle('anp_users.pkl')   
     
 # In[face]
 
