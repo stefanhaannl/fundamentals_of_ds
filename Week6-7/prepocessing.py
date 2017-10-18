@@ -21,59 +21,59 @@ def init(path):
 def anp(path, init_df):
     anp = pd.read_pickle(path)
 
-userimage = []
+    userimage = []
 
-for i in anp.image_id:
-    userimage.append(str(i).split('_')[1])
+    for i in anp.image_id:
+        userimage.append(str(i).split('_')[1])
+        
+    anp['user_id'] = userimage
     
-anp['user_id'] = userimage
-
-# Create new dataframe, fill all emotions with NaN, then retrieve average
-# emotion score per emotion per user.
-uniq_users = init_df.user_id.drop_duplicates()
-uniq_users = uniq_users.reset_index().user_id
-users_df = pd.DataFrame()
-users_df['user_id'] = uniq_users
-users_df['anp_sen'] = np.nan
-users_df['acceptance'] = np.nan
-users_df['admiration'] = np.nan
-users_df['amazement'] = np.nan
-users_df['anger'] = np.nan
-users_df['annoyance'] = np.nan
-users_df['anticipation'] = np.nan
-users_df['apprehension'] =np.nan
-users_df['boredom'] = np.nan
-users_df['disgust'] = np.nan
-users_df['distraction'] = np.nan
-users_df['ecstasy'] = np.nan
-users_df['fear'] = np.nan
-users_df['grief'] = np.nan
-users_df['interest'] = np.nan
-users_df['joy'] = np.nan
-users_df['loathing'] = np.nan
-users_df['pensiveness'] = np.nan
-users_df['rage'] = np.nan
-users_df['sadness'] = np.nan
-users_df['serenity'] = np.nan
-users_df['surprise'] = np.nan
-users_df['terror'] = np.nan
-users_df['trust'] = np.nan
-users_df['vigilance'] = np.nan
+    # Create new dataframe, fill all emotions with NaN, then retrieve average
+    # emotion score per emotion per user.
+    uniq_users = init_df.user_id.drop_duplicates()
+    uniq_users = uniq_users.reset_index().user_id
+    users_df = pd.DataFrame()
+    users_df['user_id'] = uniq_users
+    users_df['anp_sen'] = np.nan
+    users_df['acceptance'] = np.nan
+    users_df['admiration'] = np.nan
+    users_df['amazement'] = np.nan
+    users_df['anger'] = np.nan
+    users_df['annoyance'] = np.nan
+    users_df['anticipation'] = np.nan
+    users_df['apprehension'] =np.nan
+    users_df['boredom'] = np.nan
+    users_df['disgust'] = np.nan
+    users_df['distraction'] = np.nan
+    users_df['ecstasy'] = np.nan
+    users_df['fear'] = np.nan
+    users_df['grief'] = np.nan
+    users_df['interest'] = np.nan
+    users_df['joy'] = np.nan
+    users_df['loathing'] = np.nan
+    users_df['pensiveness'] = np.nan
+    users_df['rage'] = np.nan
+    users_df['sadness'] = np.nan
+    users_df['serenity'] = np.nan
+    users_df['surprise'] = np.nan
+    users_df['terror'] = np.nan
+    users_df['trust'] = np.nan
+    users_df['vigilance'] = np.nan
+        
+        
+    # Nu per user emotionscore bepalen
+    for i in range(0,len(users_df)):
+                print float(i)/float(len(users_df))
+                userid = users_df.user_id[i]
+        #        anp.emotion_score.groupby(['emotion_label']).mean()
+                emo_score = anp[anp.user_id == userid].groupby(['emotion_label']).emotion_score.mean()
+                for a in range(0,len(emo_score)):
+                    users_df.iloc[i,users_df.columns == emo_score.index[a]] = emo_score[a]
+                
+                users_df.anp_sen[i] = anp[anp.user_id == userid].anp_sentiment.mean()
     
-    
-# Nu per user emotionscore bepalen
-for i in range(0,len(users_df)):
-            print float(i)/float(len(users_df))
-            userid = users_df.user_id[i]
-    #        anp.emotion_score.groupby(['emotion_label']).mean()
-            emo_score = anp[anp.user_id == userid].groupby(['emotion_label']).emotion_score.mean()
-            for a in range(0,len(emo_score)):
-                users_df.iloc[i,users_df.columns == emo_score.index[a]] = emo_score[a]
-            
-            users_df.anp_sen[i] = anp[anp.user_id == userid].anp_sentiment.mean()
-
-anp_users = users_df
-anp_users.to_pickle('anp_users.pkl')   
+    anp_users = users_df
+    anp_users.to_pickle('anp_users.pkl')   
     
 # In[face]
 
@@ -212,10 +212,6 @@ def image_pickle(path):
 
 # In[Images to users]
 
-
-
-
-
 def merge_user(image_df):
     userdf = image_df.groupby('user_id').apply(merge_user_apply)
 
@@ -252,22 +248,40 @@ def merge_user_apply(x):
 def filter_user_features(df):
     #user posted photos >= 5
     df = df[df['user_posted_photos'] >= 5]
-    #fill nan values with mean
-    df = df.fillna(df.mean()) 
+    #change the min en max age values
+    df['age_min'] = df['age_min'].apply(lambda x: x.iloc[0])
+    df['age_max'] = df['age_max'].apply(lambda x: x.iloc[0])
+    df['people_max'] = df['people_max'].apply(lambda x: x.iloc[0])
     #rename some columns
     df.rename(columns={'likes':'image_likes','comments':'image_comments','filter':'image_filter','data_memorability':'image_data_memorability','Animal':'object_animal','Brochure':'object_borchure','Canine':'object_canine','Collage':'object_collage','Face':'object_face','Flyer':'object_flyer','Food':'object_food','Furniture':'object_furniture','Human':'object_human','Mammal':'object_mammal','Outdoors':'object_outdoors','People':'object_people','Person':'object_person','Pet':'object_pet','Plant':'object_plant','Portrait':'object_portrait','Poster':'object_poster','Potted Plant':'object_potted_plant','Text':'object_text','Smile':'object_smile','ANGRY':'face_emotion_angry','CALM':'face_emotion_calm','CONFUSED':'face_emotion_confused','DISGUSTED':'face_emotion_disgusted','HAPPY':'face_emotion_happy','SAD':'face_emotion_sad','SURPRISED':'face_emotion_surprised','age_max':'face_age_max','age_mean':'face_age_mean','age_min':'face_age_min','beards':'face_beards','eyeglasses':'face_eyeglasses','male_percentage':'face_male_percentage','mustaches':'face_mustaches','people_max':'face_people_max','people_mean':'face_people_mean','smiles':'face_smiles','sunglasses':'face_sunglasses','P':'outcome_P','E':'outcome_E','R':'outcome_R','M':'outcome_M','A':'outcome_A','PERMA':'outcome_PERMA'},inplace=True)
+    #nan value desicions:
+    df['face_people_max'].fillna(0,inplace=True)
+    df['face_people_mean'].fillna(0,inplace=True)
+    for col in list(df):
+        if col[0:3] == 'anp':
+            df[col].fillna(0,inplace=True)
+        if col[0:4] == 'face':
+            df[col].fillna(df[col].mean(),inplace=True)
+    
     return df
 # In[main]
 if __name__ == "__main__": 
     
-    paths = ['data/anp.pkl','data/face.pkl','data/image_data.pkl',
-         'data/image_metrics.pkl','data/survey.pkl','data/object_labels.pkl']
+
 
     #read the user features data
     df = pd.read_pickle('data/user_features.pkl')
+    df.reset_index(inplace=True)
     #read the anp data
-    #anp = pd.read_pickle('data/user_anp.pkl')
+    anp = pd.read_pickle('data/anp_users.pkl')
+    anp['user_id'] = anp['user_id'].apply(int)
+    #change the column names
+    anp.rename(columns={'anp_sen':'sen'},inplace=True)
+    cols = list(anp)
+    cols.remove('user_id')
+    for column in cols:
+        anp.rename(columns={column:'anp_'+column},inplace=True)
     #merge the user features with the anp features
-    
+    dfn = pd.merge(df, anp,how='inner', on='user_id')
     #filter some users based on features and fill nan values
-    df = filter_user_features(df)
+    dfn = filter_user_features(dfn)
