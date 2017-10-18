@@ -155,33 +155,66 @@ def merge_data(face_df, image_data_df, image_metrics_df, survey_df, object_label
 def image_pickle(path):
     df = pd.read_pickle(path)
     return df
+
+
+# In[Images to users]
+
+
+
+
+
+def merge_user(image_df):
+    userdf = image_df.groupby('user_id').apply(merge_user_apply)
+
+    #filtering here
+    return userdf
+
+def merge_user_apply(x):
+    ret = {}
+    
+    ret['image_height'] = x['image_height'].mean()
+    ret['image_width'] = x['image_width'].mean()
+    ret['data_memorability'] = x['data_memorability'].mean()
+    ret['user_followed_by'] = max(x['user_followed_by'])
+    ret['user_follows'] = max(x['user_follows'])
+    ret['user_posted_photos'] = max(x['user_posted_photos'])
+    ret['filter'] = x['special_filter'].mean()
+    ret['comments'] = x['comment_count'].mean()
+    ret['likes'] = x['like_count'].mean()
+    lmeans = ['P','E','R','M','A','PERMA','Person','People','Human','Poster','Plant','Portrait','Flyer','Face','Animal','Food','Smile','Brochure','Mammal','Text','Potted Plant','Pet','Furniture','Collage','Outdoors','Canine','ANGRY','CALM','CONFUSED','DISGUSTED','HAPPY','SAD','SURPRISED','beards','eyeglasses','male_percentage','mustaches']
+    for lmean in lmeans:
+        ret[lmean] = x[lmean].mean()
+    ret['age_mean'] = x['age'].mean()
+    ret['age_max'] = numpy.nanmax(x['age'])
+    ret['age_min'] = numpy.nanmin(x['age'])
+    ret['people_mean'] = x['n_people'].mean()
+    ret['people_max'] = numpy.nanmax(x['n_people'])
+    ret['smiles'] = (x['smiles']/x['n_people']).mean()
+    ret['sunglasses'] = (x['sunglasses']/x['n_people']).mean()
+    return pd.Series(ret)
+
+
+# In[Filter final dataframe]
+
+def filter_user_features(df):
+    #user posted photos >= 5
+    df = df[df['user_posted_photos'] >= 5]
+    #fill nan values with mean
+    df = df.fillna(df.mean()) 
+    #rename some columns
+    df.rename(columns={'likes':'image_likes','comments':'image_comments','filter':'image_filter','data_memorability':'image_data_memorability','Animal':'object_animal','Brochure':'object_borchure','Canine':'object_canine','Collage':'object_collage','Face':'object_face','Flyer':'object_flyer','Food':'object_food','Furniture':'object_furniture','Human':'object_human','Mammal':'object_mammal','Outdoors':'object_outdoors','People':'object_people','Person':'object_person','Pet':'object_pet','Plant':'object_plant','Portrait':'object_portrait','Poster':'object_poster','Potted Plant':'object_potted_plant','Text':'object_text','Smile':'object_smile','ANGRY':'face_emotion_angry','CALM':'face_emotion_calm','CONFUSED':'face_emotion_confused','DISGUSTED':'face_emotion_disgusted','HAPPY':'face_emotion_happy','SAD':'face_emotion_sad','SURPRISED':'face_emotion_surprised','age_max':'face_age_max','age_mean':'face_age_mean','age_min':'face_age_min','beards':'face_beards','eyeglasses':'face_eyeglasses','male_percentage':'face_male_percentage','mustaches':'face_mustaches','people_max':'face_people_max','people_mean':'face_people_mean','smiles':'face_smiles','sunglasses':'face_sunglasses','P':'outcome_P','E':'outcome_E','R':'outcome_R','M':'outcome_M','A':'outcome_A','PERMA':'outcome_PERMA'},inplace=True)
+    return df
 # In[main]
 if __name__ == "__main__": 
     
     paths = ['data/anp.pkl','data/face.pkl','data/image_data.pkl',
          'data/image_metrics.pkl','data/survey.pkl','data/object_labels.pkl']
 
-
+    #read the user features data
+    df = pd.read_pickle('data/user_features.pkl')
+    #read the anp data
+    #anp = pd.read_pickle('data/user_anp.pkl')
+    #merge the user features with the anp features
     
-    # Load al the data
-    
-    init_df = init(paths[2])
-    
-    face_df = face('pickles/face.pkl',init_df.copy())
-    face_df.reset_index(inplace=True) 
-    
-    image_data_df = image_data(paths[3], init_df.copy())
-    image_metrics_df = image_data_Axel(paths[2], init_df.copy())
-    survey_df = survey(paths[4], init_df.copy())
-    object_labels_df = object_labels(paths[5], init_df.copy())
-   
-    
-    # merge dataframes
-    
-    result_per_image = merge_data(face_df, image_data_df, image_metrics_df, survey_df, object_labels_df)
-    result_per_image.to_pickle('data/result_image.pkl')
-    
-    #df_merged = image_pickle('data/result_image.pkl')
-    
-
-    
+    #filter some users based on features and fill nan values
+    df = filter_user_features(df)
