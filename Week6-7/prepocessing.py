@@ -270,18 +270,20 @@ if __name__ == "__main__":
 
 
     #read the user features data
-    df = pd.read_pickle('data/user_features.pkl')
-    df.reset_index(inplace=True)
+    #df = pd.read_pickle('data/user_features.pkl')
+    #df.reset_index(inplace=True)
     #read the anp data
-    anp = pd.read_pickle('data/anp_users.pkl')
-    anp['user_id'] = anp['user_id'].apply(int)
+    #anp = pd.read_pickle('data/anp_users.pkl')
+    #anp['user_id'] = anp['user_id'].apply(int)
     #change the column names
-    anp.rename(columns={'anp_sen':'sen'},inplace=True)
-    cols = list(anp)
-    cols.remove('user_id')
-    for column in cols:
-        anp.rename(columns={column:'anp_'+column},inplace=True)
+    #anp.rename(columns={'anp_sen':'sen'},inplace=True)
+    #cols = list(anp)
+    #cols.remove('user_id')
+    #for column in cols:
+    #    anp.rename(columns={column:'anp_'+column},inplace=True)
     #merge the user features with the anp features
-    dfn = pd.merge(df, anp,how='inner', on='user_id')
+    #dfn = pd.merge(df, anp,how='inner', on='user_id')
     #filter some users based on features and fill nan values
-    dfn = filter_user_features(dfn)
+    #dfn = filter_user_features(dfn)
+    dfn = pd.read_pickle('data/final_user_features.pkl')
+    
