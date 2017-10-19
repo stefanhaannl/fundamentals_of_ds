@@ -22,9 +22,7 @@ def plot_correlation(corr_matrix):
     Input: correlation matrix
     Output: plots of the corr matrix
     """
-    pp.pprint(corr_matrix)
     headers = list(df.columns.values)
-    pp.pprint(headers)
     fig = plt.figure()
     ax = fig.add_subplot(111)
     cax = ax.matshow(corr_matrix)
@@ -71,26 +69,31 @@ def variance_columns(df_norm):
 if __name__ == "__main__": 
     
     # read dataframe
-    df = pd.read_pickle('data/user_features.pkl')
-    df = df.iloc[:5]
+    df = pd.read_pickle('data/final_user_features.pkl')
     df.reset_index(inplace=True) 
-    
     
     # delete non numeric columns
     #del df['image_id']
+    del df['index']
     del df['user_id']
+    del df['outcome_P']
+    del df['outcome_E']
+    del df['outcome_M']
+    del df['outcome_R']
+    del df['outcome_A']
+    del df['outcome_PERMA']
     
-    pp.pprint(df)
+    
+    print "Amount of features before variance thresholding: ", len(list(df.columns.values))
     # correlation matrix
     corr_matrix = correlation_matrix(df)
     
     # plot correlation matrix
     plot_correlation(corr_matrix)
-        
+    
     # normalize for variance thresholding
     df_norm = normalize_df(df)
-    pp.pprint(df_norm)
 
     # variance threshold input has to be normalized
     df_var = variance_columns(df_norm)
-    pp.pprint(df_var)
+    print "Amount of features after variance thresholding: ", len(list(df.columns.values))
