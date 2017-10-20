@@ -264,6 +264,30 @@ def filter_user_features(df):
             df[col].fillna(df[col].mean(),inplace=True)
     
     return df
+
+
+def new_perma(dfn,survey):
+    survey = survey[['P_1','P_2','P_3','E_1','E_2','E_3','R_1','R_2','R_3','M_1','M_2','M_3','A_1','A_2','A_3','insta_user_id']]
+    survey['P'] = (survey['P_1'].apply(float)+survey['P_2']+survey['P_3'])/3
+    survey['E'] = (survey['E_1'].apply(float)+survey['E_2']+survey['E_3'])/3
+    survey['R'] = (survey['R_1'].apply(float)+survey['R_2']+survey['R_3'])/3
+    survey['M'] = (survey['M_1'].apply(float)+survey['M_2']+survey['M_3'])/3
+    survey['A'] = (survey['A_1'].apply(float)+survey['A_2']+survey['A_3'])/3
+    survey['PERMA'] = (survey['P']+survey['E']+survey['R']+survey['M']+survey['A'])/5
+    survey = survey[['P','E','R','M','A','PERMA','insta_user_id']]
+    
+    survey['insta_user_id'] = survey['insta_user_id'].apply(int)
+
+    dfn.drop(['outcome_P','outcome_E','outcome_R','outcome_M','outcome_A','outcome_PERMA'],axis=1,inplace=True)
+    
+    survey = survey[survey['id'].isin(list(dfn['user_id']))]
+    survey = survey[~survey['insta_user_id'].duplicated()]
+    survey.rename(columns={'insta_user_id':'user_id'},inplace=True)
+    
+    newdfn = pd.merge(dfn, survey, how='inner', on='user_id')
+    newdfn.rename(columns={'P':'outcome_P','E':'outcome_E','R':'outcome_R','M':'outcome_M','A':'outcome_A','PERMA':'outcome_PERMA',},inplace=True)
+    
+    return newdfn
 # In[main]
 if __name__ == "__main__": 
     
@@ -286,4 +310,6 @@ if __name__ == "__main__":
     #filter some users based on features and fill nan values
     #dfn = filter_user_features(dfn)
     dfn = pd.read_pickle('data/final_user_features.pkl')
+    
+    
     
